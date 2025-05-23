@@ -21,3 +21,4 @@ torchsummary==1.5.1
 torchvision==0.20.1
 
 pingouin==0.5.5
+kagglehub==0.3.12
