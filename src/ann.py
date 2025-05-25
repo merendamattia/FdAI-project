@@ -16,8 +16,7 @@ warnings.filterwarnings('ignore')
 import matplotlib
 matplotlib.use('Agg')  # Use non-interactive backend for saving images
 
-IMG_DIR = "img"
-os.makedirs(IMG_DIR, exist_ok=True)
+NUM_EPOCHS = 100  # Default number of epochs for training
 
 class AutoNeuralNetwork(nn.Module):
     """Neural network with automatic architecture based on the number of features."""
@@ -346,7 +345,16 @@ class ResultsAnalyzer:
         ax2.set_ylabel('Accuracy (%)')
         ax2.legend(bbox_to_anchor=(1.05, 1), loc='upper left')
         ax2.grid(True, alpha=0.3)
-        ax2.set_ylim(0, 100)
+
+        # Compute the minimum accuracy over all experiments
+        all_accuracies = [acc for history in self.training_histories.values() for acc in history['accuracies']]
+        min_acc = min(all_accuracies) if all_accuracies else 0
+        lower_lim = max(min_acc - 2, 0)  # 2 percentage points below the minimum, but not less than 0
+
+        max_acc = max(all_accuracies) if all_accuracies else 100
+        higher_lim = min(max_acc + 1, 100)  # 2 percentage points above the maximum, but not more than 100
+
+        ax2.set_ylim(lower_lim, higher_lim)
 
         plt.tight_layout()
         plt.savefig(os.path.join(IMG_DIR, "training_curves.png"))
@@ -673,7 +681,7 @@ def run_preprocessing_study(dataset_pairs, target_column):
             # Training
             print("🎯 Training the model...")
             model, predictions, train_losses, train_accuracies = trainer.train_model(
-                X_train, y_train, X_test, y_test, num_epochs=100
+                X_train, y_train, X_test, y_test, num_epochs=NUM_EPOCHS
             )
 
             # Evaluation
@@ -704,30 +712,60 @@ def run_preprocessing_study(dataset_pairs, target_column):
 
     return analyzer.results
 
+def read_dataset_pairs(root_folder):
+    """
+    Generate a list of dataset file pairs from the given root folder.
+    For each subfolder under the root folder, if both 'train.csv'
+    and 'test.csv' exist, their paths are added as a tuple to the list.
+
+    Args:
+        root_folder (str): The path to the dataset root folder.
+
+    Returns:
+        list: A list of tuples (train_file_path, test_file_path).
+    """
+    from pathlib import Path
+
+    root = Path(root_folder)
+    dataset_pairs = []
+
+    for subfolder in sorted(root.iterdir()):
+        if subfolder.is_dir():
+            train_file = subfolder / "train.csv"
+            test_file = subfolder / "test.csv"
+            if train_file.exists() and test_file.exists():
+                dataset_pairs.append((str(train_file), str(test_file)))
+            else:
+                print(f"Warning: One or both files missing in folder {subfolder.name}")
+
+    print(f"Found {len(dataset_pairs)} dataset pairs for comparison.")
+    print("Dataset pairs:")
+    for i, (train_path, test_path) in enumerate(dataset_pairs):
+        print(f"{i+1}: {train_path} <-> {test_path}")
+    print("=" * 60)
+
+    return dataset_pairs
+
 if __name__ == "__main__":
-    dataset_pairs = [
-        ("datasets/classification/census_income/02_without_NaN/train.csv",
-         "datasets/classification/census_income/02_without_NaN/test.csv"),
-        ("datasets/classification/census_income/03_imputed_mean/train.csv",
-         "datasets/classification/census_income/03_imputed_mean/test.csv"),
-        ("datasets/classification/census_income/04_imputed_mode/train.csv",
-         "datasets/classification/census_income/04_imputed_mode/test.csv"),
-        ("datasets/classification/census_income/05_imputed_median/train.csv",
-        "datasets/classification/census_income/05_imputed_median/test.csv"),
-        ("datasets/classification/census_income/06_no_outliers_0.01/train.csv",
-        "datasets/classification/census_income/06_no_outliers_0.01/test.csv"),
-        ("datasets/classification/census_income/06_no_outliers_0.03/train.csv",
-        "datasets/classification/census_income/06_no_outliers_0.03/test.csv"),
-        ("datasets/classification/census_income/06_no_outliers_0.05/train.csv",
-        "datasets/classification/census_income/06_no_outliers_0.05/test.csv"),
-        ("datasets/classification/census_income/07_normalized/train.csv",
-        "datasets/classification/census_income/07_normalized/test.csv"),
-        ("datasets/classification/census_income/08_transformed/train.csv",
-        "datasets/classification/census_income/08_transformed/test.csv"),
-    ]
+    root_folder = "datasets/"
+    dataset_folder = "classification/census_income"
+    results_folder = "results/" + dataset_folder
+
+    global IMG_DIR
+    IMG_DIR = os.path.join(results_folder, "img")
+    os.makedirs(IMG_DIR, exist_ok=True)
+
+    dataset_pairs = read_dataset_pairs(root_folder + dataset_folder)
 
     # Target column name
-    target_column = "salary"  # Change to your target column name
+    target_column = "salary"
 
     # Run the study
     results = run_preprocessing_study(dataset_pairs, target_column)
+
+    # Save results in results_folder
+    import json
+    results_file = os.path.join(results_folder, "results.json")
+    with open(results_file, "w") as f:
+        json.dump(results, f, indent=4)
+    print(f"Results saved to {results_file}")
