@@ -270,8 +270,8 @@ def main():
         # Scenario 4: impute NaN values using median
         df_train_mod = impute_with_median_pycaret(df_train)
         df_test_mod = impute_with_median_pycaret(df_test)
-        save_dataset(df_train_mod, f'{dataset_dir}/04_imputed_median/train.csv')
-        save_dataset(df_test_mod, f'{dataset_dir}/04_imputed_median/test.csv')
+        save_dataset(df_train_mod, f'{dataset_dir}/05_imputed_median/train.csv')
+        save_dataset(df_test_mod, f'{dataset_dir}/05_imputed_median/test.csv')
         logger.debug(f'Train set after imputation: {df_train_mod.shape[0]} rows, {df_train_mod.shape[1]} features')
         logger.debug(f'Test set after imputation: {df_test_mod.shape[0]} rows, {df_test_mod.shape[1]} features')
 
@@ -281,24 +281,24 @@ def main():
         for threshold in thresholds:
             df_train_no_outliers = remove_outliers_pycaret(df_train, threshold=threshold)
             df_test_no_outliers = remove_outliers_pycaret(df_test, threshold=threshold)
-            save_dataset(df_train_no_outliers, f'{dataset_dir}/05_no_outliers_{threshold}/train.csv')
-            save_dataset(df_test_no_outliers, f'{dataset_dir}/05_no_outliers_{threshold}/test.csv')
+            save_dataset(df_train_no_outliers, f'{dataset_dir}/06_no_outliers_{threshold}/train.csv')
+            save_dataset(df_test_no_outliers, f'{dataset_dir}/06_no_outliers_{threshold}/test.csv')
             logger.debug(f'Train set after outlier removal (th={threshold}): {df_train_no_outliers.shape[0]} rows, {df_train_no_outliers.shape[1]} features')
             logger.debug(f'Test set after outlier removal (th={threshold}): {df_test_no_outliers.shape[0]} rows, {df_test_no_outliers.shape[1]} features')
 
         # Scenario 6: normalize features
         df_train_norm = normalize_pycaret(df_train)
         df_test_norm = normalize_pycaret(df_test)
-        save_dataset(df_train_norm, f'{dataset_dir}/06_normalized/train.csv')
-        save_dataset(df_test_norm, f'{dataset_dir}/06_normalized/test.csv')
+        save_dataset(df_train_norm, f'{dataset_dir}/07_normalized/train.csv')
+        save_dataset(df_test_norm, f'{dataset_dir}/07_normalized/test.csv')
         logger.debug(f'Train set after normalization: {df_train_norm.shape[0]} rows, {df_train_norm.shape[1]} features')
         logger.debug(f'Test set after normalization: {df_test_norm.shape[0]} rows, {df_test_norm.shape[1]} features')
 
         # Scenario 7: transform features
         df_train_trans = transform_pycaret(df_train)
         df_test_trans = transform_pycaret(df_test)
-        save_dataset(df_train_trans, f'{dataset_dir}/07_transformed/train.csv')
-        save_dataset(df_test_trans, f'{dataset_dir}/07_transformed/test.csv')
+        save_dataset(df_train_trans, f'{dataset_dir}/08_transformed/train.csv')
+        save_dataset(df_test_trans, f'{dataset_dir}/08_transformed/test.csv')
         logger.debug(f'Train set after transformation: {df_train_trans.shape[0]} rows, {df_train_trans.shape[1]} features')
         logger.debug(f'Test set after transformation: {df_test_trans.shape[0]} rows, {df_test_trans.shape[1]} features')
 
