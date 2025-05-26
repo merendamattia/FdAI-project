@@ -1011,5 +1011,3 @@ if __name__ == "__main__":
                              target_column="salary")
     run_classification_study(dataset_folder="classification/bank_marketing/",
                              target_column="subscribe")
-    # run_classification_study(dataset_folder="regression/bike_sharing/",
-    #                          target_column="cnt")
