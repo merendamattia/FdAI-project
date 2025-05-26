@@ -309,8 +309,8 @@ def transform_pycaret(df,
 def main():
     logger = get_logger()
     dataset_dirs = [
-        # ('datasets/classification/census_income', 'classification'),
-        # ('datasets/classification/bank_marketing', 'classification'),
+        ('datasets/classification/census_income', 'classification'),
+        ('datasets/classification/bank_marketing', 'classification'),
         ('datasets/regression/bike_sharing', 'regression')
     ]
     logger.info('Starting preprocessing of datasets')
