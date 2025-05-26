@@ -11,6 +11,7 @@ import seaborn as sns
 from pathlib import Path
 import os
 import pickle
+import logging
 import json
 import warnings
 warnings.filterwarnings('ignore')
@@ -19,6 +20,70 @@ import matplotlib
 matplotlib.use('Agg')  # Use non-interactive backend for saving images
 
 NUM_EPOCHS = 100  # Default number of epochs for training
+
+def setup_logging():
+    """
+    Sets up the logging configuration for the preprocessing module.
+    Adds color support for console logs if colorama is available.
+    Returns a logger instance named 'preprocessing'.
+    """
+
+    # Add color support for console logs
+    try:
+        from colorama import init, Fore, Style
+        init(autoreset=True)
+        class ColorFormatter(logging.Formatter):
+            COLORS = {
+                'DEBUG': Fore.CYAN,
+                'INFO': Fore.GREEN,
+                'WARNING': Fore.YELLOW,
+                'ERROR': Fore.RED,
+                'CRITICAL': Fore.MAGENTA
+            }
+            def format(self, record):
+                levelname = record.levelname
+                color = self.COLORS.get(levelname, "")
+                # Color only the levelname part
+                record.levelname = f"{color}{levelname}{Style.RESET_ALL}"
+                message = super().format(record)
+                # Restore original levelname to avoid side effects
+                record.levelname = levelname
+                return message
+    except ImportError:
+        ColorFormatter = None
+
+    # Setup logger
+    log_dir = os.path.dirname(os.path.abspath(__file__))
+    log_file = os.path.join(log_dir, 'preprocessing.log')
+
+    file_handler = logging.FileHandler(log_file, mode='a')
+    file_handler.setFormatter(logging.Formatter('%(asctime)s [%(levelname)s] %(message)s'))
+
+    console_handler = logging.StreamHandler()
+    if ColorFormatter:
+        console_handler.setFormatter(ColorFormatter('%(asctime)s [%(levelname)s] %(message)s'))
+    else:
+        console_handler.setFormatter(logging.Formatter('%(asctime)s [%(levelname)s] %(message)s'))
+
+    logging.basicConfig(
+        level=logging.DEBUG,
+        handlers=[file_handler, console_handler]
+    )
+    logger = logging.getLogger("preprocessing")
+    return logger
+
+def get_logger():
+    """
+    Returns a singleton logger instance for the preprocessing module.
+    Ensures that the logger is initialized only once.
+    """
+
+    # Singleton logger getter
+    if not hasattr(get_logger, "_logger"):
+        get_logger._logger = setup_logging()
+    return get_logger._logger
+
+logging = get_logger()
 
 class AutoNeuralNetwork(nn.Module):
     """Neural network with automatic architecture based on the number of features."""
@@ -209,7 +274,7 @@ class ModelTrainer:
             train_accuracies.append(accuracy)
 
             if (epoch + 1) % 5 == 0:
-                print(f'Epoch [{epoch+1}/{num_epochs}], Loss: {avg_loss:.4f}, Accuracy: {accuracy:.2f}%')
+                logging.info(f'Epoch [{epoch+1}/{num_epochs}], Loss: {avg_loss:.4f}, Accuracy: {accuracy:.2f}%')
 
         # Evaluation
         model.eval()
@@ -253,22 +318,22 @@ class ResultsAnalyzer:
         """
         Print the results of all experiments in a table and highlight the best model.
         """
-        print("\n" + "="*80)
-        print("FINAL RESULTS OF EXPERIMENTS")
-        print("="*80)
+        logging.info("\n" + "="*80)
+        logging.info("FINAL RESULTS OF EXPERIMENTS")
+        logging.info("="*80)
 
         # Create DataFrame for better visualization
         df_results = pd.DataFrame(self.results).T
         df_results = df_results.round(4)
 
-        print(df_results.to_string())
+        logging.info(df_results.to_string())
 
         # Find the best model
         best_model = df_results['f1'].idxmax()
         best_f1 = df_results.loc[best_model, 'f1']
 
-        print(f"\n🏆 BEST MODEL: {best_model}")
-        print(f"   F1-Score: {best_f1:.4f}")
+        logging.info(f"\n🏆 BEST MODEL: {best_model}")
+        logging.info(f"   F1-Score: {best_f1:.4f}")
 
         return df_results
 
@@ -312,7 +377,7 @@ class ResultsAnalyzer:
         Plot training loss and accuracy curves for each experiment.
         """
         if not self.training_histories:
-            print("⚠️ No training history available for plots")
+            logging.warning("⚠️ No training history available for plots")
             return
 
         n_experiments = len(self.training_histories)
@@ -616,9 +681,9 @@ def setup_device():
     # Check for CUDA availability
     if torch.cuda.is_available():
         device = torch.device('cuda')
-        print(f"🚀 CUDA GPU detected: {torch.cuda.get_device_name(0)}")
-        print(f"   CUDA Version: {torch.version.cuda}")
-        print(f"   Available GPU memory: {torch.cuda.get_device_properties(0).total_memory / 1e9:.1f} GB")
+        logging.info(f"🚀 CUDA GPU detected: {torch.cuda.get_device_name(0)}")
+        logging.info(f"   CUDA Version: {torch.version.cuda}")
+        logging.info(f"   Available GPU memory: {torch.cuda.get_device_properties(0).total_memory / 1e9:.1f} GB")
 
         # GPU optimizations
         torch.backends.cudnn.benchmark = True  # Optimize for fixed-size input
@@ -630,16 +695,16 @@ def setup_device():
     # # Check for Apple Silicon (MPS) support
     # elif hasattr(torch.backends, 'mps') and torch.backends.mps.is_available():
     #     device = torch.device('mps')
-    #     print("🍎 Apple Silicon GPU (MPS) detected")
+    #     logging.info("🍎 Apple Silicon GPU (MPS) detected")
 
     # Fallback to CPU with optimizations
     else:
         device = torch.device('cpu')
-        print("💻 Using CPU")
+        logging.info("💻 Using CPU")
 
         # CPU optimizations
         torch.set_num_threads(torch.get_num_threads())  # Use all available CPU cores
-        print(f"   CPU threads used: {torch.get_num_threads()}")
+        logging.info(f"   CPU threads used: {torch.get_num_threads()}")
 
     return device
 
@@ -672,8 +737,8 @@ def save_model_and_data(model, preprocessor, experiment_name, model_folder):
     with open(preprocessor_path, 'wb') as f:
         pickle.dump(preprocessor, f)
 
-    print(f"   ✅ Model saved to: {model_path}")
-    print(f"   ✅ Preprocessor saved to: {preprocessor_path}")
+    logging.info(f"   ✅ Model saved to: {model_path}")
+    logging.info(f"   ✅ Preprocessor saved to: {preprocessor_path}")
 
 def load_model_and_data(experiment_name, model_folder, device):
     """
@@ -712,13 +777,13 @@ def load_model_and_data(experiment_name, model_folder, device):
         with open(preprocessor_path, 'rb') as f:
             preprocessor = pickle.load(f)
 
-        print(f"   ✅ Model loaded from: {model_path}")
-        print(f"   ✅ Preprocessor loaded from: {preprocessor_path}")
+        logging.info(f"   ✅ Model loaded from: {model_path}")
+        logging.info(f"   ✅ Preprocessor loaded from: {preprocessor_path}")
 
         return model, preprocessor
 
     except Exception as e:
-        print(f"   ❌ Loading error: {str(e)}")
+        logging.error(f"   ❌ Loading error: {str(e)}")
         return None, None
 
 def check_models_exist(dataset_pairs, model_folder):
@@ -749,41 +814,42 @@ def run_preprocessing_study(dataset_pairs, target_column, model_folder):
     """
     Main function that supports saving/loading models.
     """
-    print("🚀 STARTING PREPROCESSING EFFECTIVENESS STUDY")
-    print("="*60)
+    logging.info("🚀 STARTING PREPROCESSING EFFECTIVENESS STUDY")
+    logging.info("="*60)
 
     device = setup_device()
-    print(f"📱 Using device: {device}")
+    logging.info(f"📱 Using device: {device}")
 
     # Check existing models
     models_status = check_models_exist(dataset_pairs, model_folder)
     existing_models = sum(models_status.values())
     total_models = len(models_status)
 
-    print(f"📦 Existing models: {existing_models}/{total_models}")
+    logging.info(f"📦 Existing models: {existing_models}/{total_models}")
 
     trainer = ModelTrainer(device)
     analyzer = ResultsAnalyzer()
 
     for i, (train_path, test_path) in enumerate(dataset_pairs):
         experiment_name = extract_experiment_name(train_path)
-        print(f"\n📊 EXPERIMENT {i+1}/{len(dataset_pairs)}: {experiment_name}")
-        print("-" * 50)
+        print("\n")
+        logging.info(f"📊 EXPERIMENT {i+1}/{len(dataset_pairs)}: {experiment_name}")
+        logging.info("-" * 50)
 
         try:
             # Check if model already exists
             if models_status[experiment_name]:
-                print("🔄 Loading existing model...")
+                logging.info("🔄 Loading existing model...")
                 model, preprocessor = load_model_and_data(experiment_name, model_folder, device)
 
                 if model is not None and preprocessor is not None:
                     # Load and preprocess test data
-                    print("📥 Loading test data...")
+                    logging.info("📥 Loading test data...")
                     test_df = pd.read_csv(test_path)
                     X_test, y_test = preprocessor.transform(test_df, target_column)
 
                     # Predictions
-                    print("🎯 Generating predictions...")
+                    logging.info("🎯 Generating predictions...")
                     model.eval()
                     with torch.no_grad():
                         test_outputs = model(X_test.to(device))
@@ -803,32 +869,32 @@ def run_preprocessing_study(dataset_pairs, target_column, model_folder):
                             train_accuracies = history.get('accuracies', [])
 
                 else:
-                    print("❌ Loading error, proceeding with training...")
+                    logging.error("❌ Loading error, proceeding with training...")
                     model, preprocessor, predictions, train_losses, train_accuracies, y_test = train_new_model(
                         train_path, test_path, target_column, trainer, device, experiment_name, model_folder
                     )
             else:
-                print("🎯 Training new model...")
+                logging.info("🎯 Training new model...")
                 model, preprocessor, predictions, train_losses, train_accuracies, y_test = train_new_model(
                     train_path, test_path, target_column, trainer, device, experiment_name, model_folder
                 )
 
             # Evaluation
-            print("📈 Calculating metrics...")
+            logging.info("📈 Calculating metrics...")
             metrics = analyzer.calculate_metrics(
                 y_test.numpy(), predictions.numpy(), experiment_name,
                 train_losses, train_accuracies
             )
 
-            print(f"   Accuracy: {metrics['accuracy']:.4f}")
-            print(f"   F1-Score: {metrics['f1']:.4f}")
+            logging.info(f"   Accuracy: {metrics['accuracy']:.4f}")
+            logging.info(f"   F1-Score: {metrics['f1']:.4f}")
 
         except Exception as e:
-            print(f"❌ Error in experiment {experiment_name}: {str(e)}")
+            logging.error(f"❌ Error in experiment {experiment_name}: {str(e)}")
             continue
 
     # Final analysis
-    print("\n" + "="*60)
+    logging.info("\n" + "="*60)
     df_results = analyzer.print_results()
     analyzer.plot_comparison(df_results)
     analyzer.plot_trends(df_results)
@@ -846,30 +912,30 @@ def train_new_model(train_path, test_path, target_column, trainer, device, exper
     Helper function to train a new model.
     """
     # Load data
-    print("📥 Loading data...")
+    logging.info("📥 Loading data...")
     train_df = pd.read_csv(train_path)
     test_df = pd.read_csv(test_path)
 
-    print(f"   Training set: {train_df.shape}")
-    print(f"   Test set: {test_df.shape}")
+    logging.info(f"   Training set: {train_df.shape}")
+    logging.info(f"   Test set: {test_df.shape}")
 
     # Preprocessing
-    print("🔧 Preprocessing...")
+    logging.info("🔧 Preprocessing...")
     preprocessor = DataPreprocessor()
     X_train, y_train = preprocessor.fit_transform(train_df, target_column)
     X_test, y_test = preprocessor.transform(test_df, target_column)
 
-    print(f"   Features: {X_train.shape[1]}")
-    print(f"   Classes: {len(torch.unique(y_train))}")
+    logging.info(f"   Features: {X_train.shape[1]}")
+    logging.info(f"   Classes: {len(torch.unique(y_train))}")
 
     # Training
-    print("🎯 Training model...")
+    logging.info("🎯 Training model...")
     model, predictions, train_losses, train_accuracies = trainer.train_model(
         X_train, y_train, X_test, y_test, num_epochs=NUM_EPOCHS
     )
 
     # Save model and preprocessor
-    print("💾 Saving model...")
+    logging.info("💾 Saving model...")
     save_model_and_data(model, preprocessor, experiment_name, model_folder)
 
     # Save training history
@@ -881,7 +947,7 @@ def train_new_model(train_path, test_path, target_column, trainer, device, exper
             'accuracies': train_accuracies
         }, f, indent=2)
 
-    print(f"   ✅ Training history saved to: {history_path}")
+    logging.info(f"   ✅ Training history saved to: {history_path}")
 
     return model, preprocessor, predictions, train_losses, train_accuracies, y_test
 
@@ -909,13 +975,13 @@ def read_dataset_pairs(root_folder):
             if train_file.exists() and test_file.exists():
                 dataset_pairs.append((str(train_file), str(test_file)))
             else:
-                print(f"Warning: One or both files missing in folder {subfolder.name}")
+                logging.warning(f"Warning: One or both files missing in folder {subfolder.name}")
 
-    print(f"Found {len(dataset_pairs)} dataset pairs for comparison.")
-    print("Dataset pairs:")
+    logging.info(f"Found {len(dataset_pairs)} dataset pairs for comparison.")
+    logging.info("Dataset pairs:")
     for i, (train_path, test_path) in enumerate(dataset_pairs):
-        print(f"{i+1}: {train_path} <-> {test_path}")
-    print("=" * 60)
+        logging.info(f"{i+1}: {train_path} <-> {test_path}")
+    logging.info("=" * 60)
 
     return dataset_pairs
 
@@ -943,4 +1009,4 @@ if __name__ == "__main__":
     results_file = os.path.join(results_folder, "results.json")
     with open(results_file, "w") as f:
         json.dump(results, f, indent=4)
-    print(f"Results saved to {results_file}")
+    logging.info(f"Results saved to {results_file}")
