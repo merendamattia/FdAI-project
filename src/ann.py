@@ -66,7 +66,7 @@ def setup_logging():
         console_handler.setFormatter(logging.Formatter('%(asctime)s [%(levelname)s] %(message)s'))
 
     logging.basicConfig(
-        level=logging.DEBUG,
+        level=logging.INFO,
         handlers=[file_handler, console_handler]
     )
     logger = logging.getLogger("preprocessing")
@@ -318,22 +318,22 @@ class ResultsAnalyzer:
         """
         Print the results of all experiments in a table and highlight the best model.
         """
-        logging.info("\n" + "="*80)
-        logging.info("FINAL RESULTS OF EXPERIMENTS")
-        logging.info("="*80)
+        print("\n" + "="*80)
+        print("FINAL RESULTS OF EXPERIMENTS")
+        print("="*80)
 
         # Create DataFrame for better visualization
         df_results = pd.DataFrame(self.results).T
         df_results = df_results.round(4)
 
-        logging.info(df_results.to_string())
+        print(df_results.to_string())
 
         # Find the best model
         best_model = df_results['f1'].idxmax()
         best_f1 = df_results.loc[best_model, 'f1']
 
-        logging.info(f"\n🏆 BEST MODEL: {best_model}")
-        logging.info(f"   F1-Score: {best_f1:.4f}")
+        print(f"\n🏆 BEST MODEL: {best_model}")
+        print(f"   F1-Score: {best_f1:.4f}")
 
         return df_results
 
@@ -894,7 +894,6 @@ def run_preprocessing_study(dataset_pairs, target_column, model_folder):
             continue
 
     # Final analysis
-    logging.info("\n" + "="*60)
     df_results = analyzer.print_results()
     analyzer.plot_comparison(df_results)
     analyzer.plot_trends(df_results)
