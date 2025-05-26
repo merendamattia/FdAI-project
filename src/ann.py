@@ -10,6 +10,8 @@ import matplotlib.pyplot as plt
 import seaborn as sns
 from pathlib import Path
 import os
+import pickle
+import json
 import warnings
 warnings.filterwarnings('ignore')
 
@@ -641,16 +643,124 @@ def setup_device():
 
     return device
 
-def run_preprocessing_study(dataset_pairs, target_column):
+def save_model_and_data(model, preprocessor, experiment_name, model_folder):
     """
-    Main function to run the preprocessing effectiveness study.
+    Save the trained model and preprocessor.
+
+    Args:
+        model: The trained PyTorch model
+        preprocessor: The DataPreprocessor object with fitted transformations
+        experiment_name: Name of the experiment
+        model_folder: Folder where to save the models
+    """
+    os.makedirs(model_folder, exist_ok=True)
+
+    # Save the model
+    model_path = os.path.join(model_folder, f"{experiment_name}_model.pth")
+    torch.save({
+        'model_state_dict': model.state_dict(),
+        'model_architecture': {
+            'input_size': model.layers[0].in_features,
+            'num_classes': model.layers[-1].out_features,
+            'task_type': model.task_type
+        }
+    }, model_path)
+
+    # Save the preprocessor
+    preprocessor_path = os.path.join(model_folder, f"{experiment_name}_preprocessor.pkl")
+    import pickle
+    with open(preprocessor_path, 'wb') as f:
+        pickle.dump(preprocessor, f)
+
+    print(f"   ✅ Model saved to: {model_path}")
+    print(f"   ✅ Preprocessor saved to: {preprocessor_path}")
+
+def load_model_and_data(experiment_name, model_folder, device):
+    """
+    Load the saved model and preprocessor.
+
+    Args:
+        experiment_name: Name of the experiment
+        model_folder: Folder where the models are saved
+        device: PyTorch device (cpu/cuda)
+
+    Returns:
+        tuple: (model, preprocessor) or (None, None) if not found
+    """
+    model_path = os.path.join(model_folder, f"{experiment_name}_model.pth")
+    preprocessor_path = os.path.join(model_folder, f"{experiment_name}_preprocessor.pkl")
+
+    if not os.path.exists(model_path) or not os.path.exists(preprocessor_path):
+        return None, None
+
+    try:
+        # Load the model
+        checkpoint = torch.load(model_path, map_location=device)
+        model_info = checkpoint['model_architecture']
+
+        model = AutoNeuralNetwork(
+            input_size=model_info['input_size'],
+            num_classes=model_info['num_classes'],
+            task_type=model_info['task_type']
+        ).to(device)
+
+        model.load_state_dict(checkpoint['model_state_dict'])
+        model.eval()
+
+        # Load the preprocessor
+        import pickle
+        with open(preprocessor_path, 'rb') as f:
+            preprocessor = pickle.load(f)
+
+        print(f"   ✅ Model loaded from: {model_path}")
+        print(f"   ✅ Preprocessor loaded from: {preprocessor_path}")
+
+        return model, preprocessor
+
+    except Exception as e:
+        print(f"   ❌ Loading error: {str(e)}")
+        return None, None
+
+def check_models_exist(dataset_pairs, model_folder):
+    """
+    Check which models already exist.
+
+    Args:
+        dataset_pairs: List of dataset pairs
+        model_folder: Model folder
+
+    Returns:
+        dict: Dictionary {experiment_name: bool} indicating if model exists
+    """
+    models_status = {}
+
+    for train_path, test_path in dataset_pairs:
+        experiment_name = extract_experiment_name(train_path)
+        model_path = os.path.join(model_folder, f"{experiment_name}_model.pth")
+        preprocessor_path = os.path.join(model_folder, f"{experiment_name}_preprocessor.pkl")
+
+        models_status[experiment_name] = (
+            os.path.exists(model_path) and os.path.exists(preprocessor_path)
+        )
+
+    return models_status
+
+def run_preprocessing_study(dataset_pairs, target_column, model_folder):
+    """
+    Main function that supports saving/loading models.
     """
     print("🚀 STARTING PREPROCESSING EFFECTIVENESS STUDY")
     print("="*60)
 
     device = setup_device()
-
     print(f"📱 Using device: {device}")
+
+    # Check existing models
+    models_status = check_models_exist(dataset_pairs, model_folder)
+    existing_models = sum(models_status.values())
+    total_models = len(models_status)
+
+    print(f"📦 Existing models: {existing_models}/{total_models}")
 
     trainer = ModelTrainer(device)
     analyzer = ResultsAnalyzer()
@@ -661,28 +771,47 @@ def run_preprocessing_study(dataset_pairs, target_column):
         print("-" * 50)
 
         try:
-            # Load data
-            print("📥 Loading data...")
-            train_df = pd.read_csv(train_path)
-            test_df = pd.read_csv(test_path)
+            # Check if model already exists
+            if models_status[experiment_name]:
+                print("🔄 Loading existing model...")
+                model, preprocessor = load_model_and_data(experiment_name, model_folder, device)
 
-            print(f"   Training set: {train_df.shape}")
-            print(f"   Test set: {test_df.shape}")
+                if model is not None and preprocessor is not None:
+                    # Load and preprocess test data
+                    print("📥 Loading test data...")
+                    test_df = pd.read_csv(test_path)
+                    X_test, y_test = preprocessor.transform(test_df, target_column)
 
-            # Preprocessing
-            print("🔧 Preprocessing...")
-            preprocessor = DataPreprocessor()
-            X_train, y_train = preprocessor.fit_transform(train_df, target_column)
-            X_test, y_test = preprocessor.transform(test_df, target_column)
+                    # Predictions
+                    print("🎯 Generating predictions...")
+                    model.eval()
+                    with torch.no_grad():
+                        test_outputs = model(X_test.to(device))
+                        _, predictions = torch.max(test_outputs, 1)
+                        predictions = predictions.cpu()
 
-            print(f"   Features: {X_train.shape[1]}")
-            print(f"   Classes: {len(torch.unique(y_train))}")
+                    # Load training history if exists
+                    history_path = os.path.join(model_folder, f"{experiment_name}_history.json")
+                    train_losses = None
+                    train_accuracies = None
 
-            # Training
-            print("🎯 Training the model...")
-            model, predictions, train_losses, train_accuracies = trainer.train_model(
-                X_train, y_train, X_test, y_test, num_epochs=NUM_EPOCHS
-            )
+                    if os.path.exists(history_path):
+                        import json
+                        with open(history_path, 'r') as f:
+                            history = json.load(f)
+                            train_losses = history.get('losses', [])
+                            train_accuracies = history.get('accuracies', [])
+
+                else:
+                    print("❌ Loading error, proceeding with training...")
+                    model, preprocessor, predictions, train_losses, train_accuracies, y_test = train_new_model(
+                        train_path, test_path, target_column, trainer, device, experiment_name, model_folder
+                    )
+            else:
+                print("🎯 Training new model...")
+                model, preprocessor, predictions, train_losses, train_accuracies, y_test = train_new_model(
+                    train_path, test_path, target_column, trainer, device, experiment_name, model_folder
+                )
 
             # Evaluation
             print("📈 Calculating metrics...")
@@ -711,6 +840,50 @@ def run_preprocessing_study(dataset_pairs, target_column):
     analyzer.plot_trends(df_results)
 
     return analyzer.results
+
+def train_new_model(train_path, test_path, target_column, trainer, device, experiment_name, model_folder):
+    """
+    Helper function to train a new model.
+    """
+    # Load data
+    print("📥 Loading data...")
+    train_df = pd.read_csv(train_path)
+    test_df = pd.read_csv(test_path)
+
+    print(f"   Training set: {train_df.shape}")
+    print(f"   Test set: {test_df.shape}")
+
+    # Preprocessing
+    print("🔧 Preprocessing...")
+    preprocessor = DataPreprocessor()
+    X_train, y_train = preprocessor.fit_transform(train_df, target_column)
+    X_test, y_test = preprocessor.transform(test_df, target_column)
+
+    print(f"   Features: {X_train.shape[1]}")
+    print(f"   Classes: {len(torch.unique(y_train))}")
+
+    # Training
+    print("🎯 Training model...")
+    model, predictions, train_losses, train_accuracies = trainer.train_model(
+        X_train, y_train, X_test, y_test, num_epochs=NUM_EPOCHS
+    )
+
+    # Save model and preprocessor
+    print("💾 Saving model...")
+    save_model_and_data(model, preprocessor, experiment_name, model_folder)
+
+    # Save training history
+    history_path = os.path.join(model_folder, f"{experiment_name}_history.json")
+    import json
+    with open(history_path, 'w') as f:
+        json.dump({
+            'losses': train_losses,
+            'accuracies': train_accuracies
+        }, f, indent=2)
+
+    print(f"   ✅ Training history saved to: {history_path}")
+
+    return model, preprocessor, predictions, train_losses, train_accuracies, y_test
 
 def read_dataset_pairs(root_folder):
     """
@@ -748,20 +921,22 @@ def read_dataset_pairs(root_folder):
 
 if __name__ == "__main__":
     root_folder = "datasets/"
-    dataset_folder = "classification/census_income"
+    dataset_folder = "classification/census_income/"
     results_folder = "results/" + dataset_folder
+    model_folder = "model/" + dataset_folder + "epochs_" + str(NUM_EPOCHS) + "/"
 
     global IMG_DIR
     IMG_DIR = os.path.join(results_folder, "img")
     os.makedirs(IMG_DIR, exist_ok=True)
+    os.makedirs(model_folder, exist_ok=True)
 
     dataset_pairs = read_dataset_pairs(root_folder + dataset_folder)
 
     # Target column name
     target_column = "salary"
 
-    # Run the study
-    results = run_preprocessing_study(dataset_pairs, target_column)
+    # Run the study con supporto per modelli salvati
+    results = run_preprocessing_study(dataset_pairs, target_column, model_folder)
 
     # Save results in results_folder
     import json
