@@ -133,40 +133,73 @@ def get_feature_types(df, target=None):
         categorical_features = [col for col in categorical_features if col != target]
     return numeric_features, categorical_features
 
-def remove_nan_pycaret(df):
-    return impute_pycaret(df, numeric_imputation='drop', categorical_imputation='drop')
+def remove_nan_pycaret(df, type='classification'):
+    return impute_pycaret(df,
+                          numeric_imputation='drop',
+                          categorical_imputation='drop',
+                          type=type)
 
-def impute_with_mean_pycaret(df):
-    return impute_pycaret(df, numeric_imputation='mean')
+def impute_with_mean_pycaret(df, type='classification'):
+    return impute_pycaret(df,
+                          numeric_imputation='mean',
+                          type=type)
 
-def impute_with_mode_pycaret(df):
-    return impute_pycaret(df, numeric_imputation='mode')
+def impute_with_mode_pycaret(df, type='classification'):
+    return impute_pycaret(df,
+                          numeric_imputation='mode',
+                          type=type)
 
-def impute_with_median_pycaret(df):
-    return impute_pycaret(df, numeric_imputation='median')
+def impute_with_median_pycaret(df, type='classification'):
+    return impute_pycaret(df,
+                          numeric_imputation='median',
+                          type=type)
 
-def impute_pycaret(df, numeric_imputation='mean', categorical_imputation='mode'):
+def impute_pycaret(df,
+                   numeric_imputation='mean',
+                   categorical_imputation='mode',
+                   type='classification'):
     from pycaret.classification import ClassificationExperiment
+    from pycaret.regression import RegressionExperiment
+
     logger = get_logger()
     logger.info(f'Imputing NaN values using {numeric_imputation} strategy')
-    claexp = ClassificationExperiment()
-    claexp.setup(data=df,
-                 imputation_type='simple',
-                 numeric_imputation=numeric_imputation,
-                 categorical_imputation=categorical_imputation,
-                 session_id=123,
-                 verbose=False
-                )
+
+    if type == 'classification':
+        experiment = ClassificationExperiment()
+        experiment.setup(data=df,
+                    imputation_type='simple',
+                    numeric_imputation=numeric_imputation,
+                    categorical_imputation=categorical_imputation,
+                    session_id=123,
+                    verbose=False
+                    )
+    elif type == 'regression':
+        experiment = RegressionExperiment()
+        experiment.setup(data=df,
+                    imputation_type='simple',
+                    numeric_imputation=numeric_imputation,
+                    categorical_imputation=categorical_imputation,
+                    ignore_features=['dteday', 'instant'],
+                    session_id=123,
+                    verbose=False
+                    )
+    else:
+        logging.error("Invalid type specified. Use 'classification' or 'regression'.")
+        exit(1)
+
     if categorical_imputation == 'drop':
         initial_rows = len(df)
-        df_clean = claexp.dataset_transformed
+        df_clean = experiment.dataset_transformed
         removed_rows = initial_rows - len(df_clean)
         percent_removed = (removed_rows / initial_rows * 100) if initial_rows > 0 else 0
         logger.info(f'Removed {removed_rows} (over {initial_rows}) rows with NaN values ({percent_removed:.2f}%)')
         return df_clean
-    return claexp.dataset_transformed
 
-def remove_outliers_pycaret(df, threshold=0.05):
+    return experiment.dataset_transformed
+
+def remove_outliers_pycaret(df,
+                            threshold=0.05,
+                            type='classification'):
         """
         Removes outliers from the DataFrame using PyCaret's outlier removal.
         Outliers are detected using the IQR method with the specified threshold.
@@ -179,55 +212,113 @@ def remove_outliers_pycaret(df, threshold=0.05):
         pd.DataFrame: DataFrame with outliers removed.
         """
         from pycaret.classification import ClassificationExperiment
+        from pycaret.regression import RegressionExperiment
+
         logger = get_logger()
-        claexp = ClassificationExperiment()
-        claexp.setup(data=df,
-                     remove_outliers=True,
-                     outliers_method='iforest',
-                     outliers_threshold=threshold,
-                     session_id=123,
-                     verbose=False
-                     )
-        df_clean = claexp.dataset_transformed
+
+        if type == 'classification':
+            experiment = ClassificationExperiment()
+            experiment.setup(data=df,
+                             remove_outliers=True,
+                             outliers_method='iforest',
+                             outliers_threshold=threshold,
+                             session_id=123,
+                             verbose=False
+                             )
+        elif type == 'regression':
+            experiment = RegressionExperiment()
+            experiment.setup(data=df,
+                             remove_outliers=True,
+                             outliers_method='iforest',
+                             outliers_threshold=threshold,
+                             ignore_features=['dteday', 'instant'],
+                             session_id=123,
+                             verbose=False
+                             )
+        else:
+            logging.error("Invalid type specified. Use 'classification' or 'regression'.")
+            exit(1)
+
+        df_clean = experiment.dataset_transformed
         removed = len(df) - len(df_clean)
         logger.info(f'Removed {removed} outliers from {len(df)} rows using threshold {threshold}')
         return df_clean.reset_index(drop=True)
 
-def normalize_pycaret(df, method='zscore'):
+def normalize_pycaret(df,
+                      method='zscore',
+                      type='classification'):
     from pycaret.classification import ClassificationExperiment
+    from pycaret.regression import RegressionExperiment
+
     logger = get_logger()
     logger.info(f'Normalizing features using {method} method')
-    claexp = ClassificationExperiment()
-    claexp.setup(data=df,
-            normalize=True,
-            normalize_method=method,
-            session_id=123,
-            verbose=False
-            )
-    return claexp.dataset_transformed
 
-def transform_pycaret(df, method='quantile'):
+    if type == 'classification':
+            experiment = ClassificationExperiment()
+            experiment.setup(data=df,
+                             normalize=True,
+                             normalize_method=method,
+                             session_id=123,
+                             verbose=False
+                             )
+    elif type == 'regression':
+        experiment = RegressionExperiment()
+        experiment.setup(data=df,
+                         normalize=True,
+                         normalize_method=method,
+                         session_id=123,
+                         ignore_features=['dteday', 'instant'],
+                         verbose=False
+                         )
+    else:
+        logging.error("Invalid type specified. Use 'classification' or 'regression'.")
+        exit(1)
+    return experiment.dataset_transformed
+
+def transform_pycaret(df,
+                      method='quantile',
+                      type='classification'):
     from pycaret.classification import ClassificationExperiment
+    from pycaret.regression import RegressionExperiment
+
     logger = get_logger()
     logger.info(f'Transforming features using {method} method')
-    claexp = ClassificationExperiment()
-    claexp.setup(data=df,
-            transformation=True,
-            transformation_method=method,
-            session_id=123,
-            verbose=False
-            )
-    return claexp.dataset_transformed
+
+    if type == 'classification':
+            experiment = ClassificationExperiment()
+            experiment.setup(data=df,
+                             transformation=True,
+                             transformation_method=method,
+                             session_id=123,
+                             verbose=False
+                             )
+    elif type == 'regression':
+        experiment = RegressionExperiment()
+        experiment.setup(data=df,
+                         transformation=True,
+                         transformation_method=method,
+                         session_id=123,
+                         ignore_features=['dteday', 'instant'],
+                         verbose=False
+                         )
+    else:
+        logging.error("Invalid type specified. Use 'classification' or 'regression'.")
+        exit(1)
+    return experiment.dataset_transformed
 
 def main():
     logger = get_logger()
-    dataset_dirs = ['datasets/classification/census_income',
-                    'datasets/classification/bank_marketing']
+    dataset_dirs = [
+        # ('datasets/classification/census_income', 'classification'),
+        # ('datasets/classification/bank_marketing', 'classification'),
+        ('datasets/regression/bike_sharing', 'regression')
+    ]
     logger.info('Starting preprocessing of datasets')
     logger.info(f'Available datasets: {dataset_dirs}')
 
-    for dataset_dir in dataset_dirs:
+    for dataset_dir, type in dataset_dirs:
         logger.info(f'Processing dataset: {dataset_dir}')
+        logger.info(f'Type: {type}')
         df_train, df_test = read_datasets(dataset_dir)
 
         # Cleaning the dataset: replace '?', 'nan', 'NaN' with numpy.nan
@@ -245,32 +336,32 @@ def main():
         logger.info(f'Categorical features ({categorical_features.count}): {categorical_features}')
 
         # Scenario 1: remove NaN values
-        df_train_mod = remove_nan_pycaret(df_train)
-        df_test_mod = remove_nan_pycaret(df_test)
+        df_train_mod = remove_nan_pycaret(df=df_train, type=type)
+        df_test_mod = remove_nan_pycaret(df=df_test, type=type)
         save_dataset(df_train_mod, f'{dataset_dir}/01_without_NaN/train.csv')
         save_dataset(df_test_mod, f'{dataset_dir}/01_without_NaN/test.csv')
         logger.debug(f'Train set after imputation: {df_train_mod.shape[0]} rows, {df_train_mod.shape[1]} features')
         logger.debug(f'Test set after imputation: {df_test_mod.shape[0]} rows, {df_test_mod.shape[1]} features')
 
         # Scenario 2: impute NaN values using mean
-        df_train_mod = impute_with_mean_pycaret(df_train)
-        df_test_mod = impute_with_mean_pycaret(df_test)
+        df_train_mod = impute_with_mean_pycaret(df=df_train, type=type)
+        df_test_mod = impute_with_mean_pycaret(df=df_test, type=type)
         save_dataset(df_train_mod, f'{dataset_dir}/02_imputed_mean/train.csv')
         save_dataset(df_test_mod, f'{dataset_dir}/02_imputed_mean/test.csv')
         logger.debug(f'Train set after imputation: {df_train_mod.shape[0]} rows, {df_train_mod.shape[1]} features')
         logger.debug(f'Test set after imputation: {df_test_mod.shape[0]} rows, {df_test_mod.shape[1]} features')
 
         # Scenario 3: impute NaN values using mode
-        df_train_mod = impute_with_mode_pycaret(df_train)
-        df_test_mod = impute_with_mode_pycaret(df_test)
+        df_train_mod = impute_with_mode_pycaret(df=df_train, type=type)
+        df_test_mod = impute_with_mode_pycaret(df=df_test, type=type)
         save_dataset(df_train_mod, f'{dataset_dir}/03_imputed_mode/train.csv')
         save_dataset(df_test_mod, f'{dataset_dir}/03_imputed_mode/test.csv')
         logger.debug(f'Train set after imputation: {df_train_mod.shape[0]} rows, {df_train_mod.shape[1]} features')
         logger.debug(f'Test set after imputation: {df_test_mod.shape[0]} rows, {df_test_mod.shape[1]} features')
 
         # Scenario 4: impute NaN values using median
-        df_train_mod = impute_with_median_pycaret(df_train)
-        df_test_mod = impute_with_median_pycaret(df_test)
+        df_train_mod = impute_with_median_pycaret(df=df_train, type=type)
+        df_test_mod = impute_with_median_pycaret(df=df_test, type=type)
         save_dataset(df_train_mod, f'{dataset_dir}/04_imputed_median/train.csv')
         save_dataset(df_test_mod, f'{dataset_dir}/04_imputed_median/test.csv')
         logger.debug(f'Train set after imputation: {df_train_mod.shape[0]} rows, {df_train_mod.shape[1]} features')
@@ -280,24 +371,24 @@ def main():
         thresholds = [0.01, 0.03, 0.05]
         logger.info(f'Removing outliers with thresholds: {thresholds}')
         for threshold in thresholds:
-            df_train_no_outliers = remove_outliers_pycaret(df_train, threshold=threshold)
-            df_test_no_outliers = remove_outliers_pycaret(df_test, threshold=threshold)
+            df_train_no_outliers = remove_outliers_pycaret(df=df_train, type=type, threshold=threshold)
+            df_test_no_outliers = remove_outliers_pycaret(df=df_test, type=type, threshold=threshold)
             save_dataset(df_train_no_outliers, f'{dataset_dir}/05_no_outliers_{threshold}/train.csv')
             save_dataset(df_test_no_outliers, f'{dataset_dir}/05_no_outliers_{threshold}/test.csv')
             logger.debug(f'Train set after outlier removal (th={threshold}): {df_train_no_outliers.shape[0]} rows, {df_train_no_outliers.shape[1]} features')
             logger.debug(f'Test set after outlier removal (th={threshold}): {df_test_no_outliers.shape[0]} rows, {df_test_no_outliers.shape[1]} features')
 
         # Scenario 6: normalize features
-        df_train_norm = normalize_pycaret(df_train)
-        df_test_norm = normalize_pycaret(df_test)
+        df_train_norm = normalize_pycaret(df=df_train, type=type)
+        df_test_norm = normalize_pycaret(df=df_test, type=type)
         save_dataset(df_train_norm, f'{dataset_dir}/06_normalized/train.csv')
         save_dataset(df_test_norm, f'{dataset_dir}/06_normalized/test.csv')
         logger.debug(f'Train set after normalization: {df_train_norm.shape[0]} rows, {df_train_norm.shape[1]} features')
         logger.debug(f'Test set after normalization: {df_test_norm.shape[0]} rows, {df_test_norm.shape[1]} features')
 
         # Scenario 7: transform features
-        df_train_trans = transform_pycaret(df_train)
-        df_test_trans = transform_pycaret(df_test)
+        df_train_trans = transform_pycaret(df=df_train, type=type)
+        df_test_trans = transform_pycaret(df=df_test, type=type)
         save_dataset(df_train_trans, f'{dataset_dir}/07_transformed/train.csv')
         save_dataset(df_test_trans, f'{dataset_dir}/07_transformed/test.csv')
         logger.debug(f'Train set after transformation: {df_train_trans.shape[0]} rows, {df_train_trans.shape[1]} features')
