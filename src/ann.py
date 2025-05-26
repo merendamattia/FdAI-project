@@ -984,9 +984,8 @@ def read_dataset_pairs(root_folder):
 
     return dataset_pairs
 
-if __name__ == "__main__":
+def run_classification_study(dataset_folder, target_column):
     root_folder = "datasets/"
-    dataset_folder = "classification/census_income/"
     results_folder = "results/" + dataset_folder
     model_folder = "model/" + dataset_folder + "epochs_" + str(NUM_EPOCHS) + "/"
 
@@ -997,9 +996,6 @@ if __name__ == "__main__":
 
     dataset_pairs = read_dataset_pairs(root_folder + dataset_folder)
 
-    # Target column name
-    target_column = "salary"
-
     # Run the study con supporto per modelli salvati
     results = run_preprocessing_study(dataset_pairs, target_column, model_folder)
 
@@ -1009,3 +1005,11 @@ if __name__ == "__main__":
     with open(results_file, "w") as f:
         json.dump(results, f, indent=4)
     logging.info(f"Results saved to {results_file}")
+
+if __name__ == "__main__":
+    run_classification_study(dataset_folder="classification/census_income/",
+                             target_column="salary")
+    run_classification_study(dataset_folder="classification/bank_marketing/",
+                             target_column="subscribe")
+    # run_classification_study(dataset_folder="regression/bike_sharing/",
+    #                          target_column="cnt")
