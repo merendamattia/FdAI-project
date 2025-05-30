@@ -1,3 +1,10 @@
+## [1.0.2](https://github.com/merendamattia/neural-network-performance-by-data-quality/compare/v1.0.1...v1.0.2) (2025-05-30)
+
+
+### Bug Fixes
+
+* remove temporary notebook for classification experiments ([fe1efef](https://github.com/merendamattia/neural-network-performance-by-data-quality/commit/fe1efef85dd5391fb102acd4dd3b9914ca8a7529))
+
 ## [1.0.1](https://github.com/merendamattia/neural-network-performance-by-data-quality/compare/v1.0.0...v1.0.1) (2025-05-30)
 
 
