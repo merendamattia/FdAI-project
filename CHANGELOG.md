@@ -1,3 +1,10 @@
+## [1.0.1](https://github.com/merendamattia/neural-network-performance-by-data-quality/compare/v1.0.0...v1.0.1) (2025-05-30)
+
+
+### Bug Fixes
+
+* update experiment execution instructions ([d8460b3](https://github.com/merendamattia/neural-network-performance-by-data-quality/commit/d8460b321f2ab0b5931bac8c34946f4fa4411c95))
+
 # 1.0.0 (2025-05-30)
 
 
