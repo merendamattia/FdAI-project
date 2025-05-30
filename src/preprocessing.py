@@ -306,6 +306,35 @@ def transform_pycaret(df,
         exit(1)
     return experiment.dataset_transformed
 
+def scenario_impute_outlier_normalize_transform(df, type='classification'):
+    """
+    Sequentially applies:
+    1. Mean imputation for missing values;
+    2. Outlier removal using a threshold of 0.03;
+    3. Feature normalization;
+    4. Feature transformation.
+
+    Args:
+        df (pd.DataFrame): Input DataFrame.
+        type (str): Analysis type ('classification' or 'regression').
+
+    Returns:
+        pd.DataFrame: Preprocessed DataFrame.
+    """
+    # Step 1: Mean imputation
+    df_imputed = impute_with_mean_pycaret(df=df, type=type)
+
+    # Step 2: Remove outliers with a threshold of 0.03
+    df_no_outliers = remove_outliers_pycaret(df=df_imputed, type=type, threshold=0.03)
+
+    # Step 3: Normalize features
+    df_normalized = normalize_pycaret(df=df_no_outliers, type=type)
+
+    # Step 4: Transform features
+    df_transformed = transform_pycaret(df=df_normalized, type=type)
+
+    return df_transformed
+
 def analyze_with_pycaret(df_train, df_test, type='classification', target=None):
     """
     Analyzes the DataFrame using PyCaret for classification or regression tasks.
@@ -381,10 +410,6 @@ def main():
         # Cleaning the dataset: replace '?', 'nan', 'NaN' with numpy.nan
         df_train = clean_dataset(df_train)
         df_test = clean_dataset(df_test)
-        # save_dataset(df_train, f'{dataset_dir}/01_with_NaN/train.csv')
-        # save_dataset(df_test, f'{dataset_dir}/01_with_NaN/test.csv')
-        # logger.debug(f'Train set after imputation: {df_test.shape[0]} rows, {df_test.shape[1]} features')
-        # logger.debug(f'Test set after imputation: {df_test.shape[0]} rows, {df_test.shape[1]} features')
 
         # Identifying numeric and categorical features
         logger.info('Identifying numeric and categorical features')
@@ -451,6 +476,14 @@ def main():
         save_dataset(df_test_trans, f'{dataset_dir}/07_transformed/test.csv')
         logger.debug(f'Train set after transformation: {df_train_trans.shape[0]} rows, {df_train_trans.shape[1]} features')
         logger.debug(f'Test set after transformation: {df_test_trans.shape[0]} rows, {df_test_trans.shape[1]} features')
+
+        # Scenario 8: normalize, transform
+        df_train_trans = scenario_impute_outlier_normalize_transform(df=df_train, type=type)
+        df_test_trans = scenario_impute_outlier_normalize_transform(df=df_test, type=type)
+        save_dataset(df_train_trans, f'{dataset_dir}/08_normalized_transformed/train.csv')
+        save_dataset(df_test_trans, f'{dataset_dir}/08_normalized_transformed/test.csv')
+        logger.debug(f'Train set after normalization and transformation: {df_train_trans.shape[0]} rows, {df_train_trans.shape[1]} features')
+        logger.debug(f'Test set after normalization and transformation: {df_test_trans.shape[0]} rows, {df_test_trans.shape[1]} features')
 
     logger.info('Starting analysis with PyCaret')
     for dataset_dir, type, target in dataset_dirs:
