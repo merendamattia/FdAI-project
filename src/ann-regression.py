@@ -4,7 +4,6 @@ import torch.optim as optim
 from torch.utils.data import DataLoader, TensorDataset
 import pandas as pd
 import numpy as np
-from sklearn.preprocessing import StandardScaler
 from sklearn.metrics import mean_squared_error, mean_absolute_error, r2_score
 import matplotlib.pyplot as plt
 import seaborn as sns
@@ -14,7 +13,7 @@ import json
 from pathlib import Path
 import pickle
 
-NUM_EPOCHS = 20  # Default number of epochs for training
+NUM_EPOCHS = 100  # Default number of epochs for training
 
 def setup_logging():
     """
@@ -102,15 +101,14 @@ class AutoNeuralNetwork(nn.Module):
         return self.layers(x)
 
 class DataPreprocessor:
-    """Class for automatic data preprocessing."""
+    """Class for handling data preparation without transformations."""
 
     def __init__(self):
-        self.scalers = {}
         self.feature_columns = None
 
     def fit_transform(self, df, target_column):
         """
-        Preprocess the training set: handle missing values and normalize features.
+        Prepare the training set: separate features and target, ensure numeric data.
         """
         df_processed = df.copy()
 
@@ -124,19 +122,15 @@ class DataPreprocessor:
         # Save feature names
         self.feature_columns = X.columns.tolist()
 
-        # Handle missing values
-        X = X.fillna(X.mean())
+        # Ensure all columns are numeric
+        X = X.apply(pd.to_numeric, errors='coerce').fillna(0)
 
-        # Normalize numerical features
-        scaler = StandardScaler()
-        X_scaled = scaler.fit_transform(X)
-        self.scalers['features'] = scaler
-
-        return torch.FloatTensor(X_scaled), torch.FloatTensor(y.values).view(-1, 1)
+        # Convert to tensors
+        return torch.FloatTensor(X.values), torch.FloatTensor(y.values).view(-1, 1)
 
     def transform(self, df, target_column):
         """
-        Preprocess the test set using the same transformations as the training set.
+        Prepare the test set: ensure columns match the training set and ensure numeric data.
         """
         df_processed = df.copy()
 
@@ -146,13 +140,11 @@ class DataPreprocessor:
         # Ensure columns match training set
         X = X.reindex(columns=self.feature_columns, fill_value=0)
 
-        # Handle missing values
-        X = X.fillna(0)
+        # Ensure all columns are numeric
+        X = X.apply(pd.to_numeric, errors='coerce').fillna(0)
 
-        # Normalize
-        X_scaled = self.scalers['features'].transform(X)
-
-        return torch.FloatTensor(X_scaled), torch.FloatTensor(y.values).view(-1, 1)
+        # Convert to tensors
+        return torch.FloatTensor(X.values), torch.FloatTensor(y.values).view(-1, 1)
 
 class ModelTrainer:
     """Class for training neural network models."""
@@ -223,15 +215,17 @@ class ResultsAnalyzer:
         """
         Compute evaluation metrics and store results and training history.
         """
+        # Ensure all metrics are calculated and stored
         metrics = {
             'mse': float(mean_squared_error(y_true, y_pred)),  # Convert to native float
             'mae': float(mean_absolute_error(y_true, y_pred)),  # Convert to native float
             'r2': float(r2_score(y_true, y_pred))  # Convert to native float
         }
 
+        # Store metrics in the results dictionary
         self.results[experiment_name] = metrics
 
-        # Save training history
+        # Save training history if available
         if train_losses is not None:
             self.training_histories[experiment_name] = {'losses': train_losses}
 
@@ -241,17 +235,25 @@ class ResultsAnalyzer:
         """
         Print the results of all experiments in a table and highlight the best model.
         """
-        print("\n" + "="*80)
-        print("FINAL RESULTS OF EXPERIMENTS")
-        print("="*80)
+        if not self.results:
+            logging.warning("⚠️ No results available to print.")
+            return pd.DataFrame()  # Return an empty DataFrame if no results
 
-        # Create DataFrame for better visualization
+        # Create DataFrame from results
         df_results = pd.DataFrame(self.results).T
         df_results = df_results.round(4)
 
+        # Ensure 'r2' exists in the DataFrame
+        if 'r2' not in df_results.columns:
+            logging.error("❌ 'r2' metric is missing in the results.")
+            return df_results
+
+        print("\n" + "="*80)
+        print("FINAL RESULTS OF EXPERIMENTS")
+        print("="*80)
         print(df_results.to_string())
 
-        # Find the best model
+        # Find the best model based on R2
         best_model = df_results['r2'].idxmax()
         best_r2 = df_results.loc[best_model, 'r2']
 
@@ -337,7 +339,7 @@ class ResultsAnalyzer:
                 ax.text(
                     bar.get_x() + bar.get_width() / 2,
                     value * 1.01 if metric != 'r2' else value + 0.2,
-                    f'{value:.1f}' if metric != 'mse' else f'{value:.0f}',
+                    f'{value:.1f}' if metric != 'r2' else f'{value:.0f}',
                     ha='center',
                     va='bottom',
                     fontsize=10
@@ -557,12 +559,35 @@ def read_dataset_pairs(root_folder):
 
 def setup_device():
     """Automatically configure the best available device (GPU or CPU)."""
+
+    # Check for CUDA availability
     if torch.cuda.is_available():
         device = torch.device('cuda')
         logging.info(f"🚀 CUDA GPU detected: {torch.cuda.get_device_name(0)}")
+        logging.info(f"   CUDA Version: {torch.version.cuda}")
+        logging.info(f"   Available GPU memory: {torch.cuda.get_device_properties(0).total_memory / 1e9:.1f} GB")
+
+        # GPU optimizations
+        torch.backends.cudnn.benchmark = True  # Optimize for fixed-size input
+        torch.backends.cudnn.deterministic = False  # Allow faster, non-deterministic algorithms
+
+        # Clear GPU memory cache
+        torch.cuda.empty_cache()
+
+    # # Check for Apple Silicon (MPS) support
+    # elif hasattr(torch.backends, 'mps') and torch.backends.mps.is_available():
+    #     device = torch.device('mps')
+    #     logging.info("🍎 Apple Silicon GPU (MPS) detected")
+
+    # Fallback to CPU with optimizations
     else:
         device = torch.device('cpu')
         logging.info("💻 Using CPU")
+
+        # CPU optimizations
+        torch.set_num_threads(torch.get_num_threads())  # Use all available CPU cores
+        logging.info(f"   CPU threads used: {torch.get_num_threads()}")
+
     return device
 
 def extract_experiment_name(path):
@@ -574,4 +599,4 @@ def extract_experiment_name(path):
 
 if __name__ == "__main__":
     run_regression_study(dataset_folder="regression/bike_sharing/", target_column="cnt")
-    # run_regression_study(dataset_folder="regression/house_prices/", target_column="price")
+    run_regression_study(dataset_folder="regression/house_price/", target_column="price")
