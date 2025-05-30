@@ -32,11 +32,13 @@ Follow these steps to replicate the experiments:
 
    - To run the classification experiments, execute:
      ```bash
-     python src/ann-classification.py
+     cd src && \
+     python ann-classification.py
      ```
    - To run the regression experiments, execute:
      ```bash
-     python src/ann-regression.py
+     cd src && \
+     python ann-regression.py
      ```
 
 ## Notes
