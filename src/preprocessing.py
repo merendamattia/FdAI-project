@@ -179,7 +179,7 @@ def impute_pycaret(df,
                     imputation_type='simple',
                     numeric_imputation=numeric_imputation,
                     categorical_imputation=categorical_imputation,
-                    ignore_features=['dteday', 'instant'],
+                    ignore_features=['dteday', 'instant', 'property_id', 'location_id', 'page_url', 'location', 'city', 'province_name', 'area', 'date_added', 'agency', 'agent'],
                     session_id=123,
                     verbose=False
                     )
@@ -231,7 +231,7 @@ def remove_outliers_pycaret(df,
                              remove_outliers=True,
                              outliers_method='iforest',
                              outliers_threshold=threshold,
-                             ignore_features=['dteday', 'instant'],
+                             ignore_features=['dteday', 'instant', 'property_id', 'location_id', 'page_url', 'location', 'city', 'province_name', 'area', 'date_added', 'agency', 'agent'],
                              session_id=123,
                              verbose=False
                              )
@@ -267,7 +267,7 @@ def normalize_pycaret(df,
                          normalize=True,
                          normalize_method=method,
                          session_id=123,
-                         ignore_features=['dteday', 'instant'],
+                         ignore_features=['dteday', 'instant', 'property_id', 'location_id', 'page_url', 'location', 'city', 'province_name', 'area', 'date_added', 'agency', 'agent'],
                          verbose=False
                          )
     else:
@@ -298,7 +298,7 @@ def transform_pycaret(df,
                          transformation=True,
                          transformation_method=method,
                          session_id=123,
-                         ignore_features=['dteday', 'instant'],
+                         ignore_features=['dteday', 'instant', 'property_id', 'location_id', 'page_url', 'location', 'city', 'province_name', 'area', 'date_added', 'agency', 'agent'],
                          verbose=False
                          )
     else:
@@ -306,17 +306,74 @@ def transform_pycaret(df,
         exit(1)
     return experiment.dataset_transformed
 
+def analyze_with_pycaret(df_train, df_test, type='classification', target=None):
+    """
+    Analyzes the DataFrame using PyCaret for classification or regression tasks.
+    Sets up the experiment with various preprocessing options.
+
+    Args:
+        df (pd.DataFrame): Input DataFrame.
+        type (str): Type of analysis ('classification' or 'regression').
+
+    Returns:
+        ClassificationExperiment or RegressionExperiment: Configured PyCaret experiment object.
+    """
+    from pycaret.classification import ClassificationExperiment
+    from pycaret.regression import RegressionExperiment
+
+    logger = get_logger()
+    logger.info(f'Analyzing dataset with PyCaret ({type})')
+
+    if type == 'classification':
+        logger.info(f'Initializing PyCaret ClassificationExperiment')
+        experiment = ClassificationExperiment()
+    elif type == 'regression':
+        logger.info(f'Initializing PyCaret RegressionExperiment')
+        experiment = RegressionExperiment()
+    else:
+        logging.error("Invalid type specified. Use 'classification' or 'regression'.")
+        exit(1)
+
+    logger.info('Setting up PyCaret experiment with preprocessing options')
+    experiment.setup(data=df_train,
+                     session_id=123,
+                     verbose=False,
+                     target=target,
+                     imputation_type='iterative',
+                     iterative_imputation_iters=20,
+                     numeric_iterative_imputer='lightgbm',
+                     categorical_iterative_imputer='lightgbm',
+                     remove_outliers=True,
+                     outliers_threshold=0.02,
+                     outliers_method='iforest',
+                     ignore_features=['dteday', 'instant', 'property_id', 'location_id', 'page_url', 'location', 'city', 'province_name', 'area', 'date_added', 'agency', 'agent'],
+                     )
+    logger.info('Comparing models to find the best one')
+    best_model = experiment.compare_models()
+    logger.info(f'Best model found: {best_model.__class__.__name__}')
+
+    logger.info('Predicting on the training set')
+    df_train_predictions = experiment.predict_model(estimator=best_model)
+    print(df_train_predictions.head())
+
+    logger.info('Predicting on the test set')
+    df_test_predictions = experiment.predict_model(estimator=best_model, data=df_test)
+    print(df_test_predictions.head())
+
+    return experiment
+
 def main():
     logger = get_logger()
     dataset_dirs = [
-        ('datasets/classification/census_income', 'classification'),
-        ('datasets/classification/bank_marketing', 'classification'),
-        ('datasets/regression/bike_sharing', 'regression')
+        ('datasets/classification/census_income', 'classification', 'salary'),
+        ('datasets/classification/bank_marketing', 'classification', 'subscribe'),
+        ('datasets/regression/bike_sharing', 'regression', 'cnt'),
+        ('datasets/regression/house_price', 'regression', 'price')
     ]
     logger.info('Starting preprocessing of datasets')
     logger.info(f'Available datasets: {dataset_dirs}')
 
-    for dataset_dir, type in dataset_dirs:
+    for dataset_dir, type, target in dataset_dirs:
         logger.info(f'Processing dataset: {dataset_dir}')
         logger.info(f'Type: {type}')
         df_train, df_test = read_datasets(dataset_dir)
@@ -343,29 +400,30 @@ def main():
         logger.debug(f'Train set after imputation: {df_train_mod.shape[0]} rows, {df_train_mod.shape[1]} features')
         logger.debug(f'Test set after imputation: {df_test_mod.shape[0]} rows, {df_test_mod.shape[1]} features')
 
-        # Scenario 2: impute NaN values using mean
-        df_train_mod = impute_with_mean_pycaret(df=df_train, type=type)
-        df_test_mod = impute_with_mean_pycaret(df=df_test, type=type)
-        save_dataset(df_train_mod, f'{dataset_dir}/02_imputed_mean/train.csv')
-        save_dataset(df_test_mod, f'{dataset_dir}/02_imputed_mean/test.csv')
-        logger.debug(f'Train set after imputation: {df_train_mod.shape[0]} rows, {df_train_mod.shape[1]} features')
-        logger.debug(f'Test set after imputation: {df_test_mod.shape[0]} rows, {df_test_mod.shape[1]} features')
+        if (df_train_mod.shape[0] - df_train.shape[0]) != 0:
+            # Scenario 2: impute NaN values using mean
+            df_train_mod = impute_with_mean_pycaret(df=df_train, type=type)
+            df_test_mod = impute_with_mean_pycaret(df=df_test, type=type)
+            save_dataset(df_train_mod, f'{dataset_dir}/02_imputed_mean/train.csv')
+            save_dataset(df_test_mod, f'{dataset_dir}/02_imputed_mean/test.csv')
+            logger.debug(f'Train set after imputation: {df_train_mod.shape[0]} rows, {df_train_mod.shape[1]} features')
+            logger.debug(f'Test set after imputation: {df_test_mod.shape[0]} rows, {df_test_mod.shape[1]} features')
 
-        # Scenario 3: impute NaN values using mode
-        df_train_mod = impute_with_mode_pycaret(df=df_train, type=type)
-        df_test_mod = impute_with_mode_pycaret(df=df_test, type=type)
-        save_dataset(df_train_mod, f'{dataset_dir}/03_imputed_mode/train.csv')
-        save_dataset(df_test_mod, f'{dataset_dir}/03_imputed_mode/test.csv')
-        logger.debug(f'Train set after imputation: {df_train_mod.shape[0]} rows, {df_train_mod.shape[1]} features')
-        logger.debug(f'Test set after imputation: {df_test_mod.shape[0]} rows, {df_test_mod.shape[1]} features')
+            # Scenario 3: impute NaN values using mode
+            df_train_mod = impute_with_mode_pycaret(df=df_train, type=type)
+            df_test_mod = impute_with_mode_pycaret(df=df_test, type=type)
+            save_dataset(df_train_mod, f'{dataset_dir}/03_imputed_mode/train.csv')
+            save_dataset(df_test_mod, f'{dataset_dir}/03_imputed_mode/test.csv')
+            logger.debug(f'Train set after imputation: {df_train_mod.shape[0]} rows, {df_train_mod.shape[1]} features')
+            logger.debug(f'Test set after imputation: {df_test_mod.shape[0]} rows, {df_test_mod.shape[1]} features')
 
-        # Scenario 4: impute NaN values using median
-        df_train_mod = impute_with_median_pycaret(df=df_train, type=type)
-        df_test_mod = impute_with_median_pycaret(df=df_test, type=type)
-        save_dataset(df_train_mod, f'{dataset_dir}/04_imputed_median/train.csv')
-        save_dataset(df_test_mod, f'{dataset_dir}/04_imputed_median/test.csv')
-        logger.debug(f'Train set after imputation: {df_train_mod.shape[0]} rows, {df_train_mod.shape[1]} features')
-        logger.debug(f'Test set after imputation: {df_test_mod.shape[0]} rows, {df_test_mod.shape[1]} features')
+            # Scenario 4: impute NaN values using median
+            df_train_mod = impute_with_median_pycaret(df=df_train, type=type)
+            df_test_mod = impute_with_median_pycaret(df=df_test, type=type)
+            save_dataset(df_train_mod, f'{dataset_dir}/04_imputed_median/train.csv')
+            save_dataset(df_test_mod, f'{dataset_dir}/04_imputed_median/test.csv')
+            logger.debug(f'Train set after imputation: {df_train_mod.shape[0]} rows, {df_train_mod.shape[1]} features')
+            logger.debug(f'Test set after imputation: {df_test_mod.shape[0]} rows, {df_test_mod.shape[1]} features')
 
         # Scenario 5: remove outliers with different thresholds
         thresholds = [0.01, 0.03, 0.05]
@@ -393,6 +451,22 @@ def main():
         save_dataset(df_test_trans, f'{dataset_dir}/07_transformed/test.csv')
         logger.debug(f'Train set after transformation: {df_train_trans.shape[0]} rows, {df_train_trans.shape[1]} features')
         logger.debug(f'Test set after transformation: {df_test_trans.shape[0]} rows, {df_test_trans.shape[1]} features')
+
+    logger.info('Starting analysis with PyCaret')
+    for dataset_dir, type, target in dataset_dirs:
+        logger.info(f'Processing dataset: {dataset_dir}')
+        logger.info(f'Type: {type}')
+        logger.info(f'Target column: {target}')
+        df_train, df_test = read_datasets(dataset_dir)
+
+        df_train = clean_dataset(df_train)
+        df_test = clean_dataset(df_test)
+
+        analyze_with_pycaret(df_train=df_train,
+                             df_test=df_test,
+                             type=type,
+                             target=target
+                             )
 
 if __name__ == "__main__":
     main()
