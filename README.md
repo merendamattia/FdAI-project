@@ -44,4 +44,3 @@ Follow these steps to replicate the experiments:
 ## Notes
 
 - The project uses PyCaret for some preprocessing and model comparison tasks.
-- Logs and outputs will be saved in respective `logs.log`, `regression.log`, and folders under `results/`.
