@@ -1,0 +1,476 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Batch and Dropout Visualization</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            margin: 0;
+            padding: 20px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 20px;
+            padding: 30px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+        }
+
+        .title {
+            text-align: center;
+            color: #2c3e50;
+            font-size: 2.5em;
+            margin-bottom: 10px;
+            font-weight: 700;
+        }
+
+        .section {
+            margin-bottom: 40px;
+            background: #f8f9fa;
+            padding: 25px;
+            border-radius: 15px;
+            border-left: 5px solid #3498db;
+        }
+
+        .section-title {
+            font-size: 1.8em;
+            color: #2c3e50;
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .controls {
+            display: flex;
+            gap: 20px;
+            margin: 20px 0;
+            flex-wrap: wrap;
+            align-items: center;
+        }
+
+        .control-group {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        label {
+            font-weight: 600;
+            color: #2c3e50;
+        }
+
+        input, select, button {
+            padding: 8px 12px;
+            border: 2px solid #ddd;
+            border-radius: 8px;
+            font-size: 14px;
+            transition: all 0.3s;
+        }
+
+        button {
+            background: linear-gradient(45deg, #3498db, #2980b9);
+            color: white;
+            border: none;
+            cursor: pointer;
+            font-weight: 600;
+        }
+
+        button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+        }
+
+        .batch-container {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 15px;
+            margin: 20px 0;
+        }
+
+        .batch-item {
+            background: white;
+            border: 2px solid #3498db;
+            border-radius: 10px;
+            padding: 15px;
+            text-align: center;
+            transition: all 0.3s;
+        }
+
+        .batch-item:hover {
+            transform: scale(1.05);
+            box-shadow: 0 8px 16px rgba(0,0,0,0.1);
+        }
+
+        .batch-header {
+            font-weight: bold;
+            color: #3498db;
+            margin-bottom: 10px;
+        }
+
+        .data-point {
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            display: inline-block;
+            margin: 2px;
+            color: white;
+            line-height: 30px;
+            font-size: 12px;
+            font-weight: bold;
+        }
+
+        .neuron-layer {
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+            margin: 20px 0;
+            padding: 20px;
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+        }
+
+        .neuron {
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: bold;
+            transition: all 0.3s;
+            position: relative;
+        }
+
+        .neuron.active {
+            background: linear-gradient(45deg, #27ae60, #2ecc71);
+            transform: scale(1);
+        }
+
+        .neuron.dropped {
+            background: linear-gradient(45deg, #e74c3c, #c0392b);
+            transform: scale(0.8);
+            opacity: 0.5;
+        }
+
+        .neuron::after {
+            content: '';
+            position: absolute;
+            top: -5px;
+            right: -5px;
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            font-size: 16px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .neuron.dropped::after {
+            content: '❌';
+        }
+
+        .neuron.active::after {
+            content: '✅';
+        }
+
+        .stats-container {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin: 20px 0;
+        }
+
+        .stat-card {
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            text-align: center;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+        }
+
+        .stat-value {
+            font-size: 2em;
+            font-weight: bold;
+            color: #3498db;
+        }
+
+        .stat-label {
+            color: #7f8c8d;
+            margin-top: 5px;
+        }
+
+        .batchnorm-demo {
+            background: white;
+            padding: 20px;
+            border-radius: 15px;
+            margin: 20px 0;
+        }
+
+        .values-row {
+            display: flex;
+            gap: 10px;
+            margin: 10px 0;
+            align-items: center;
+        }
+
+        .value-box {
+            padding: 8px 12px;
+            border-radius: 8px;
+            font-weight: bold;
+            text-align: center;
+            min-width: 60px;
+        }
+
+        .original { background: #ffebee; color: #c62828; }
+        .normalized { background: #e8f5e8; color: #2e7d32; }
+
+        .arrow {
+            font-size: 1.5em;
+            color: #3498db;
+        }
+
+        .explanation {
+            background: #fff3cd;
+            border: 1px solid #ffeaa7;
+            padding: 15px;
+            border-radius: 10px;
+            margin: 15px 0;
+        }
+
+        .code-block {
+            background: #2c3e50;
+            color: #ecf0f1;
+            padding: 15px;
+            border-radius: 10px;
+            font-family: 'Courier New', monospace;
+            margin: 15px 0;
+            overflow-x: auto;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1 class="title">🧠 Batch and Dropout Explained</h1>
+
+        <!-- Batch Section -->
+        <div class="section">
+            <h2 class="section-title">📦 What is a Batch?</h2>
+
+            <div class="explanation">
+                <strong>A batch is a group of examples processed together by the neural network.</strong><br>
+                Instead of processing one example at a time, the network processes a batch of examples in parallel.
+            </div>
+
+            <div class="controls">
+                <div class="control-group">
+                    <label for="batchSize">Batch Size:</label>
+                    <input type="number" id="batchSize" value="4" min="1" max="8">
+                </div>
+                <div class="control-group">
+                    <label for="totalSamples">Total Samples:</label>
+                    <input type="number" id="totalSamples" value="32" min="8" max="64">
+                </div>
+                <button onclick="generateBatches()">🔄 Generate Batches</button>
+            </div>
+
+            <div id="batchContainer" class="batch-container"></div>
+
+            <div class="stats-container">
+                <div class="stat-card">
+                    <div class="stat-value" id="numBatches">0</div>
+                    <div class="stat-label">Numero di Batch</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-value" id="updatesPerEpoch">0</div>
+                    <div class="stat-label">Aggiornamenti per Epoca</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- BatchNorm Section -->
+        <div class="section">
+            <h2 class="section-title">📊 Batch Normalization</h2>
+
+            <div class="explanation">
+                <strong>Batch Normalization normalizes the values using the statistics of the current batch.</strong><br>
+                This stabilizes training and accelerates convergence.
+            </div>
+
+            <div class="controls">
+                <button onclick="demonstrateBatchNorm()">🎲 Simulate BatchNorm</button>
+            </div>
+
+            <div class="batchnorm-demo" id="batchnormDemo">
+                <h4>Transformation of Values:</h4>
+                <div id="batchnormValues"></div>
+                <div class="code-block" id="batchnormFormula">
+                    Normalized_value = γ × ((value - batch_mean) / sqrt(batch_variance + ε)) + β
+                </div>
+            </div>
+        </div>
+
+        <!-- Dropout Section -->
+        <div class="section">
+            <h2 class="section-title">🎯 Dropout</h2>
+
+            <div class="explanation">
+                <strong>Dropout randomly 'turns off' some neurons during training.</strong><br>
+                This prevents overfitting and makes the network more robust.
+            </div>
+
+            <div class="controls">
+                <div class="control-group">
+                    <label for="dropoutRate">Dropout Rate:</label>
+                    <input type="range" id="dropoutRate" min="0" max="0.8" step="0.1" value="0.3">
+                    <span id="dropoutValue">30%</span>
+                </div>
+                <button onclick="applyDropout()">🎲 Apply Dropout</button>
+            </div>
+
+            <div class="neuron-layer" id="neuronLayer">
+                <!-- Neuroni generati dinamicamente -->
+            </div>
+
+            <div class="stats-container">
+                <div class="stat-card">
+                    <div class="stat-value" id="activeNeurons">0</div>
+                    <div class="stat-label">Active Neurons</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-value" id="droppedNeurons">0</div>
+                    <div class="stat-label">Dropped Neurons</div>
+                </div>
+            </div>
+
+            <div class="explanation">
+                <strong>🎓 Key Point:</strong> During testing/validation, all neurons are active but their outputs are scaled to compensate.
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Funzioni per i Batch
+        function generateBatches() {
+            const batchSize = parseInt(document.getElementById('batchSize').value);
+            const totalSamples = parseInt(document.getElementById('totalSamples').value);
+            const container = document.getElementById('batchContainer');
+
+            container.innerHTML = '';
+
+            const numBatches = Math.ceil(totalSamples / batchSize);
+            document.getElementById('numBatches').textContent = numBatches;
+            document.getElementById('updatesPerEpoch').textContent = numBatches;
+
+            for (let i = 0; i < numBatches; i++) {
+                const batchDiv = document.createElement('div');
+                batchDiv.className = 'batch-item';
+
+                const startIdx = i * batchSize;
+                const endIdx = Math.min(startIdx + batchSize, totalSamples);
+                const actualBatchSize = endIdx - startIdx;
+
+                batchDiv.innerHTML = `
+                    <div class="batch-header">Batch ${i + 1}</div>
+                    <div>Samples: ${startIdx + 1}-${endIdx}</div>
+                    <div>Size: ${actualBatchSize}</div>
+                    <div style="margin-top: 10px;">
+                        ${Array.from({length: actualBatchSize}, (_, j) =>
+                            `<span class="data-point" style="background: hsl(${(startIdx + j) * 10}, 70%, 50%)">${startIdx + j + 1}</span>`
+                        ).join('')}
+                    </div>
+                `;
+
+                container.appendChild(batchDiv);
+            }
+        }
+
+        // Funzioni per BatchNorm
+        function demonstrateBatchNorm() {
+            const values = Array.from({length: 8}, () => Math.random() * 20 - 10);
+            const mean = values.reduce((a, b) => a + b) / values.length;
+            const variance = values.reduce((sum, val) => sum + Math.pow(val - mean, 2), 0) / values.length;
+            const std = Math.sqrt(variance + 1e-8);
+
+            const gamma = 1.2; // scale parameter
+            const beta = 0.5;  // shift parameter
+
+            const normalized = values.map(val => gamma * ((val - mean) / std) + beta);
+
+            const container = document.getElementById('batchnormValues');
+            container.innerHTML = `
+                <div class="values-row">
+                    <strong>Original Values:</strong>
+                    ${values.map(val => `<span class="value-box original">${val.toFixed(1)}</span>`).join('')}
+                </div>
+                <div class="values-row">
+                    <span class="arrow">⬇️ BatchNorm ⬇️</span>
+                </div>
+                <div class="values-row">
+                    <strong>Normalized Values:</strong>
+                    ${normalized.map(val => `<span class="value-box normalized">${val.toFixed(1)}</span>`).join('')}
+                </div>
+                <div style="margin-top: 15px; font-size: 0.9em; color: #666;">
+                    <strong>Batch Statistics:</strong> Mean = ${mean.toFixed(2)}, Std = ${std.toFixed(2)}<br>
+                    <strong>Parameters:</strong> γ (gamma) = ${gamma}, β (beta) = ${beta}
+                </div>
+            `;
+        }
+
+        // Funzioni per Dropout
+        function createNeurons() {
+            const container = document.getElementById('neuronLayer');
+            container.innerHTML = '';
+
+            for (let i = 0; i < 10; i++) {
+                const neuron = document.createElement('div');
+                neuron.className = 'neuron active';
+                neuron.textContent = i + 1;
+                container.appendChild(neuron);
+            }
+        }
+
+        function applyDropout() {
+            const dropoutRate = parseFloat(document.getElementById('dropoutRate').value);
+            const neurons = document.querySelectorAll('#neuronLayer .neuron');
+
+            let activeCount = 0;
+            let droppedCount = 0;
+
+            neurons.forEach(neuron => {
+                if (Math.random() < dropoutRate) {
+                    neuron.className = 'neuron dropped';
+                    droppedCount++;
+                } else {
+                    neuron.className = 'neuron active';
+                    activeCount++;
+                }
+            });
+
+            document.getElementById('activeNeurons').textContent = activeCount;
+            document.getElementById('droppedNeurons').textContent = droppedCount;
+        }
+
+        // Event listeners
+        document.getElementById('dropoutRate').addEventListener('input', function() {
+            const value = Math.round(this.value * 100);
+            document.getElementById('dropoutValue').textContent = value + '%';
+        });
+
+        // Inizializzazione
+        generateBatches();
+        createNeurons();
+        applyDropout();
+        demonstrateBatchNorm();
+    </script>
+</body>
+</html>

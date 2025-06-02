@@ -2,20 +2,25 @@
 
 This project explores how different data preprocessing techniques affect the performance of neural networks in both classification and regression tasks. The study compares various preprocessing scenarios (e.g., imputation, outlier removal, normalization, and transformation) and evaluates their impact on model accuracy, robustness, and convergence.
 
-## Project Structure
+## Features
 
-- **src/**: Contains the source code for classification (`ann-classification.py`) and regression (`ann-regression.py`) studies.
-- **datasets/**: Organized folders for classification and regression datasets.
-- **model/**: Saved models resulting from the experiments.
-- **results/**: Experiment outcomes, including logs and visualizations.
+- **Automated Neural Networks**
+  - Dynamic architecture determination
+  - Configurable hidden layers and units
+  - Batch normalization and dropout for regularization
+  - Support for both classification and regression tasks
 
-## Setup and Experiment Replication
+- **Robust Data Preprocessing**
+  - Missing value imputation (mean, median, mode)
+  - Outlier detection and removal
+  - Feature scaling and normalization
+  - Categorical variable encoding
+  - Input validation and error checking
 
-Follow these steps to replicate the experiments:
+## Setup and Usage
 
 1. **Create a Conda Environment**
 
-   Create and activate a new Conda environment for the project. For example:
    ```bash
    conda create --name neural-network-performance-by-data-quality python=3.11
    conda activate neural-network-performance-by-data-quality
@@ -23,24 +28,40 @@ Follow these steps to replicate the experiments:
 
 2. **Install Dependencies**
 
-   Run the following command inside the conda environment to set up the required dependencies:
    ```bash
    make setup
    ```
 
-3. **Run the Experiments**
+3. **Run Tests**
 
-   - To run the classification experiments, execute:
-     ```bash
-     cd src && \
-     python ann-classification.py
-     ```
-   - To run the regression experiments, execute:
-     ```bash
-     cd src && \
-     python ann-regression.py
-     ```
+   ```bash
+   make test
+   ```
+
+4. **Run Experiments**
+
+   ```bash
+   make run-classify    # to run classification experiments
+   make run-regress     # to run regression experiments
+   ```
+
+5. **[Optional] Run single experiment**
+
+   ```bash
+   # Run all experiments
+   python src/main.py --task-type classification --dataset census_income --target salary
+   python src/main.py --task-type regression --dataset house_price --target price
+   ```
+
+   Available options:
+   - `--task-type`: `classification` or `regression`
+   - `--dataset`: Name of dataset folder under `datasets/{task-type}/`
+   - `--target`: Name of target column
+   - `--epochs`: Number of training epochs (default: 100)
+   - `--batch-size`: Training batch size (default: 32)
+
 
 ## Notes
 
+- The project uses scikit-learn for preprocessing utilities
 - The project uses PyCaret for some preprocessing and model comparison tasks.
