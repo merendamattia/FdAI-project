@@ -394,9 +394,9 @@ def analyze_with_pycaret(df_train, df_test, type='classification', target=None):
 def main():
     logger = get_logger()
     dataset_dirs = [
-        ('datasets/classification/census_income', 'classification', 'salary'),
-        ('datasets/classification/bank_marketing', 'classification', 'subscribe'),
-        ('datasets/regression/bike_sharing', 'regression', 'cnt'),
+        # ('datasets/classification/census_income', 'classification', 'salary'),
+        # ('datasets/classification/bank_marketing', 'classification', 'subscribe'),
+        # ('datasets/regression/bike_sharing', 'regression', 'cnt'),
         ('datasets/regression/house_price', 'regression', 'price')
     ]
     logger.info('Starting preprocessing of datasets')

@@ -1,0 +1,46 @@
+census income
+                           accuracy  precision  recall      f1
+01_without_NaN               0.8513     0.8454  0.8513  0.8465
+02_imputed_mean              0.8530     0.8476  0.8530  0.8492
+03_imputed_mode              0.8552     0.8499  0.8552  0.8514
+04_imputed_median            0.8550     0.8496  0.8550  0.8510
+05_no_outliers_0.01          0.8535     0.8489  0.8535  0.8504
+05_no_outliers_0.03          0.8525     0.8489  0.8525  0.8503
+05_no_outliers_0.05          0.8507     0.8466  0.8507  0.8481
+06_normalized                0.8511     0.8474  0.8511  0.8488
+07_transformed               0.8462     0.8430  0.8462  0.8443
+08_normalized_transformed    0.8452     0.8417  0.8452  0.8431
+Light Gradient Boosting Machine    0.8737    0.8737  0.8694  0.87
+
+bank marketing
+                           accuracy  precision  recall      f1
+01_without_NaN               0.7461     0.7255  0.7461  0.6929
+05_no_outliers_0.01          0.7519     0.7313  0.7519  0.7086
+05_no_outliers_0.03          0.7524     0.7304  0.7524  0.7111
+05_no_outliers_0.05          0.7542     0.7325  0.7542  0.7106
+06_normalized                0.7526     0.7327  0.7526  0.7096
+07_transformed               0.7497     0.7289  0.7497  0.7033
+08_normalized_transformed    0.7530     0.7325  0.7530  0.7096
+Gradient Boosting Classifier    0.9451   0.9451  0.9361  0.9384
+
+bike sharing
+                                  mse      mae      r2
+01_without_NaN               732.0428  17.9583  0.9849
+05_no_outliers_0.01         1262.5328  25.7145  0.9740
+05_no_outliers_0.03         1323.4792  24.9745  0.9727
+05_no_outliers_0.05         1737.3779  28.8209  0.9640
+06_normalized              11559.1484  83.1329  0.7615
+07_transformed             12692.0869  85.6862  0.7381
+08_normalized_transformed  15285.6006  95.9158  0.6843
+Linear Regression  0.0 0.0 1.0
+
+house pricing
+                                    mse           mae      r2
+01_without_NaN             9.893339e+14  1.444670e+07 -0.2592
+05_no_outliers_0.01        7.572025e+14  1.376704e+07 -0.3129
+05_no_outliers_0.03        6.610446e+14  1.334692e+07 -0.3506
+05_no_outliers_0.05        6.028811e+14  1.296907e+07 -0.3639
+06_normalized              4.179000e-01  2.709000e-01  0.5519
+07_transformed             1.296000e-01  2.722000e-01  0.8705
+08_normalized_transformed  1.501000e-01  2.942000e-01  0.8509
+Light Gradient Boosting Machine 1.143050e+14 3.591056e+06  0.8545

@@ -1,0 +1,462 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tabelle Dataset</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            padding: 20px;
+            background: transparent;
+        }
+
+        .controls {
+            margin-bottom: 20px;
+            text-align: center;
+        }
+
+        .control-btn {
+            margin: 5px;
+            padding: 10px 20px;
+            background: #4CAF50;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 14px;
+        }
+
+        .control-btn:hover {
+            background: #45a049;
+        }
+
+        .control-btn.active {
+            background: #2196F3;
+        }
+
+        .table-container {
+            margin-bottom: 40px;
+            background: transparent;
+            display: none;
+            max-width: 800px;
+            margin-left: auto;
+            margin-right: auto;
+        }
+
+        .table-container.active {
+            display: block;
+        }
+
+        .table-title {
+            font-size: 24px;
+            font-weight: bold;
+            margin-bottom: 15px;
+            color: #333;
+            text-transform: uppercase;
+            text-align: center;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            background: transparent;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            font-size: 14px;
+        }
+
+        th, td {
+            padding: 12px 15px;
+            text-align: left;
+            border: 1px solid rgba(0,0,0,0.1);
+            background: transparent;
+        }
+
+        th {
+            background: rgba(240,240,240,0.8);
+            font-weight: bold;
+            color: #333;
+        }
+
+        td {
+            background: rgba(255,255,255,0.6);
+        }
+
+        tr:nth-child(even) td {
+            background: rgba(248,248,248,0.6);
+        }
+
+        tr:hover td {
+            background: rgba(230,240,255,0.7);
+        }
+
+        .metric-column {
+            text-align: right;
+            font-family: 'Courier New', monospace;
+        }
+
+        .method-name {
+            font-weight: 500;
+        }
+
+        .best-score {
+            background: rgba(144,238,144,0.7) !important;
+            font-weight: bold;
+        }
+
+        .export-info {
+            text-align: center;
+            margin-top: 20px;
+            color: #666;
+            font-size: 12px;
+        }
+    </style>
+</head>
+<body>
+    <!-- Controls -->
+    <div class="controls">
+        <button class="control-btn active" onclick="showTable('census')">Census Income</button>
+        <button class="control-btn" onclick="showTable('bank')">Bank Marketing</button>
+        <button class="control-btn" onclick="showTable('bike')">Bike Sharing</button>
+        <button class="control-btn" onclick="showTable('house')">House Pricing</button>
+        <button class="control-btn" onclick="showAllTables()">Mostra Tutte</button>
+    </div>
+
+    <!-- Census Income Table -->
+    <div class="table-container active" id="census-table">
+        <div class="table-title">Census Income</div>
+        <table>
+            <thead>
+                <tr>
+                    <th>Method</th>
+                    <th>Accuracy</th>
+                    <th>Precision</th>
+                    <th>Recall</th>
+                    <th>F1</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td class="method-name">01_without_NaN</td>
+                    <td class="metric-column">0.8513</td>
+                    <td class="metric-column">0.8454</td>
+                    <td class="metric-column">0.8513</td>
+                    <td class="metric-column">0.8465</td>
+                </tr>
+                <tr>
+                    <td class="method-name">02_imputed_mean</td>
+                    <td class="metric-column">0.8530</td>
+                    <td class="metric-column">0.8476</td>
+                    <td class="metric-column">0.8530</td>
+                    <td class="metric-column">0.8492</td>
+                </tr>
+                <tr>
+                    <td class="method-name">03_imputed_mode</td>
+                    <td class="metric-column">0.8552</td>
+                    <td class="metric-column">0.8499</td>
+                    <td class="metric-column">0.8552</td>
+                    <td class="metric-column">0.8514</td>
+                </tr>
+                <tr>
+                    <td class="method-name">04_imputed_median</td>
+                    <td class="metric-column">0.8550</td>
+                    <td class="metric-column">0.8496</td>
+                    <td class="metric-column">0.8550</td>
+                    <td class="metric-column">0.8510</td>
+                </tr>
+                <tr>
+                    <td class="method-name">05_no_outliers_0.01</td>
+                    <td class="metric-column">0.8535</td>
+                    <td class="metric-column">0.8489</td>
+                    <td class="metric-column">0.8535</td>
+                    <td class="metric-column">0.8504</td>
+                </tr>
+                <tr>
+                    <td class="method-name">05_no_outliers_0.03</td>
+                    <td class="metric-column">0.8525</td>
+                    <td class="metric-column">0.8489</td>
+                    <td class="metric-column">0.8525</td>
+                    <td class="metric-column">0.8503</td>
+                </tr>
+                <tr>
+                    <td class="method-name">05_no_outliers_0.05</td>
+                    <td class="metric-column">0.8507</td>
+                    <td class="metric-column">0.8466</td>
+                    <td class="metric-column">0.8507</td>
+                    <td class="metric-column">0.8481</td>
+                </tr>
+                <tr>
+                    <td class="method-name">06_normalized</td>
+                    <td class="metric-column">0.8511</td>
+                    <td class="metric-column">0.8474</td>
+                    <td class="metric-column">0.8511</td>
+                    <td class="metric-column">0.8488</td>
+                </tr>
+                <tr>
+                    <td class="method-name">07_transformed</td>
+                    <td class="metric-column">0.8462</td>
+                    <td class="metric-column">0.8430</td>
+                    <td class="metric-column">0.8462</td>
+                    <td class="metric-column">0.8443</td>
+                </tr>
+                <tr>
+                    <td class="method-name">08_normalized_transformed</td>
+                    <td class="metric-column">0.8452</td>
+                    <td class="metric-column">0.8417</td>
+                    <td class="metric-column">0.8452</td>
+                    <td class="metric-column">0.8431</td>
+                </tr>
+                <tr class="best-score">
+                    <td class="method-name">(AutoML) Light Gradient Boosting Machine</td>
+                    <td class="metric-column">0.8737</td>
+                    <td class="metric-column">0.8737</td>
+                    <td class="metric-column">0.8694</td>
+                    <td class="metric-column">0.8700</td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+
+    <!-- Bank Marketing Table -->
+    <div class="table-container" id="bank-table">
+        <div class="table-title">Bank Marketing</div>
+        <table>
+            <thead>
+                <tr>
+                    <th>Method</th>
+                    <th>Accuracy</th>
+                    <th>Precision</th>
+                    <th>Recall</th>
+                    <th>F1</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td class="method-name">01_without_NaN</td>
+                    <td class="metric-column">0.7461</td>
+                    <td class="metric-column">0.7255</td>
+                    <td class="metric-column">0.7461</td>
+                    <td class="metric-column">0.6929</td>
+                </tr>
+                <tr>
+                    <td class="method-name">05_no_outliers_0.01</td>
+                    <td class="metric-column">0.7519</td>
+                    <td class="metric-column">0.7313</td>
+                    <td class="metric-column">0.7519</td>
+                    <td class="metric-column">0.7086</td>
+                </tr>
+                <tr>
+                    <td class="method-name">05_no_outliers_0.03</td>
+                    <td class="metric-column">0.7524</td>
+                    <td class="metric-column">0.7304</td>
+                    <td class="metric-column">0.7524</td>
+                    <td class="metric-column">0.7111</td>
+                </tr>
+                <tr>
+                    <td class="method-name">05_no_outliers_0.05</td>
+                    <td class="metric-column">0.7542</td>
+                    <td class="metric-column">0.7325</td>
+                    <td class="metric-column">0.7542</td>
+                    <td class="metric-column">0.7106</td>
+                </tr>
+                <tr>
+                    <td class="method-name">06_normalized</td>
+                    <td class="metric-column">0.7526</td>
+                    <td class="metric-column">0.7327</td>
+                    <td class="metric-column">0.7526</td>
+                    <td class="metric-column">0.7096</td>
+                </tr>
+                <tr>
+                    <td class="method-name">07_transformed</td>
+                    <td class="metric-column">0.7497</td>
+                    <td class="metric-column">0.7289</td>
+                    <td class="metric-column">0.7497</td>
+                    <td class="metric-column">0.7033</td>
+                </tr>
+                <tr>
+                    <td class="method-name">08_normalized_transformed</td>
+                    <td class="metric-column">0.7530</td>
+                    <td class="metric-column">0.7325</td>
+                    <td class="metric-column">0.7530</td>
+                    <td class="metric-column">0.7096</td>
+                </tr>
+                <tr class="best-score">
+                    <td class="method-name">(AutoML) Gradient Boosting Classifier</td>
+                    <td class="metric-column">0.9451</td>
+                    <td class="metric-column">0.9451</td>
+                    <td class="metric-column">0.9361</td>
+                    <td class="metric-column">0.9384</td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+
+    <!-- Bike Sharing Table -->
+    <div class="table-container" id="bike-table">
+        <div class="table-title">Bike Sharing</div>
+        <table>
+            <thead>
+                <tr>
+                    <th>Method</th>
+                    <th>MSE</th>
+                    <th>MAE</th>
+                    <th>R²</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td class="method-name">01_without_NaN</td>
+                    <td class="metric-column">732.0428</td>
+                    <td class="metric-column">17.9583</td>
+                    <td class="metric-column">0.9849</td>
+                </tr>
+                <tr>
+                    <td class="method-name">05_no_outliers_0.01</td>
+                    <td class="metric-column">1262.5328</td>
+                    <td class="metric-column">25.7145</td>
+                    <td class="metric-column">0.9740</td>
+                </tr>
+                <tr>
+                    <td class="method-name">05_no_outliers_0.03</td>
+                    <td class="metric-column">1323.4792</td>
+                    <td class="metric-column">24.9745</td>
+                    <td class="metric-column">0.9727</td>
+                </tr>
+                <tr>
+                    <td class="method-name">05_no_outliers_0.05</td>
+                    <td class="metric-column">1737.3779</td>
+                    <td class="metric-column">28.8209</td>
+                    <td class="metric-column">0.9640</td>
+                </tr>
+                <tr>
+                    <td class="method-name">06_normalized</td>
+                    <td class="metric-column">11559.1484</td>
+                    <td class="metric-column">83.1329</td>
+                    <td class="metric-column">0.7615</td>
+                </tr>
+                <tr>
+                    <td class="method-name">07_transformed</td>
+                    <td class="metric-column">12692.0869</td>
+                    <td class="metric-column">85.6862</td>
+                    <td class="metric-column">0.7381</td>
+                </tr>
+                <tr>
+                    <td class="method-name">08_normalized_transformed</td>
+                    <td class="metric-column">15285.6006</td>
+                    <td class="metric-column">95.9158</td>
+                    <td class="metric-column">0.6843</td>
+                </tr>
+                <tr class="best-score">
+                    <td class="method-name">(AutoML) Linear Regression</td>
+                    <td class="metric-column">0.0</td>
+                    <td class="metric-column">0.0</td>
+                    <td class="metric-column">1.0</td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+
+    <!-- House Pricing Table -->
+    <div class="table-container" id="house-table">
+        <div class="table-title">House Pricing</div>
+        <table>
+            <thead>
+                <tr>
+                    <th>Method</th>
+                    <th>MSE</th>
+                    <th>MAE</th>
+                    <th>R²</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td class="method-name">01_without_NaN</td>
+                    <td class="metric-column">9.893339e+14</td>
+                    <td class="metric-column">1.444670e+07</td>
+                    <td class="metric-column">-0.2592</td>
+                </tr>
+                <tr>
+                    <td class="method-name">05_no_outliers_0.01</td>
+                    <td class="metric-column">7.572025e+14</td>
+                    <td class="metric-column">1.376704e+07</td>
+                    <td class="metric-column">-0.3129</td>
+                </tr>
+                <tr>
+                    <td class="method-name">05_no_outliers_0.03</td>
+                    <td class="metric-column">6.610446e+14</td>
+                    <td class="metric-column">1.334692e+07</td>
+                    <td class="metric-column">-0.3506</td>
+                </tr>
+                <tr>
+                    <td class="method-name">05_no_outliers_0.05</td>
+                    <td class="metric-column">6.028811e+14</td>
+                    <td class="metric-column">1.296907e+07</td>
+                    <td class="metric-column">-0.3639</td>
+                </tr>
+                <tr>
+                    <td class="method-name">06_normalized</td>
+                    <td class="metric-column">4.179000e-01</td>
+                    <td class="metric-column">2.709000e-01</td>
+                    <td class="metric-column">0.5519</td>
+                </tr>
+                <tr class="best-score">
+                    <td class="method-name">07_transformed</td>
+                    <td class="metric-column">1.296000e-01</td>
+                    <td class="metric-column">2.722000e-01</td>
+                    <td class="metric-column">0.8705</td>
+                </tr>
+                <tr>
+                    <td class="method-name">08_normalized_transformed</td>
+                    <td class="metric-column">1.501000e-01</td>
+                    <td class="metric-column">2.942000e-01</td>
+                    <td class="metric-column">0.8509</td>
+                </tr>
+                <tr>
+                    <td class="method-name">(AutoML) Light Gradient Boosting Machine</td>
+                    <td class="metric-column">1.143050e+14</td>
+                    <td class="metric-column">3.591056e+06</td>
+                    <td class="metric-column">0.8545</td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+
+    <div class="export-info">
+        💡 Per salvare una tabella come PNG: seleziona una tabella, poi usa F12 → Elements → clic destro sulla tabella → "Capture node screenshot"
+    </div>
+
+    <script>
+        function showTable(tableType) {
+            // Nascondi tutte le tabelle
+            const tables = document.querySelectorAll('.table-container');
+            tables.forEach(table => table.classList.remove('active'));
+
+            // Rimuovi classe active da tutti i bottoni
+            const buttons = document.querySelectorAll('.control-btn');
+            buttons.forEach(btn => btn.classList.remove('active'));
+
+            // Mostra la tabella selezionata
+            const targetTable = document.getElementById(tableType + '-table');
+            if (targetTable) {
+                targetTable.classList.add('active');
+            }
+
+            // Attiva il bottone selezionato
+            event.target.classList.add('active');
+        }
+
+        function showAllTables() {
+            // Mostra tutte le tabelle
+            const tables = document.querySelectorAll('.table-container');
+            tables.forEach(table => table.classList.add('active'));
+
+            // Rimuovi classe active da tutti i bottoni
+            const buttons = document.querySelectorAll('.control-btn');
+            buttons.forEach(btn => btn.classList.remove('active'));
+
+            // Attiva il bottone "Mostra Tutte"
+            event.target.classList.add('active');
+        }
+    </script>
+</body>
+</html>

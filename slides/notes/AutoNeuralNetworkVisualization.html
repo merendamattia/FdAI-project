@@ -1,0 +1,389 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AutoNeuralNetwork Visualization</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            margin: 0;
+            padding: 20px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 20px;
+            padding: 30px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+        }
+
+        .title {
+            text-align: center;
+            color: #2c3e50;
+            font-size: 2.5em;
+            margin-bottom: 10px;
+            font-weight: 700;
+        }
+
+        .subtitle {
+            text-align: center;
+            color: #7f8c8d;
+            font-size: 1.2em;
+            margin-bottom: 40px;
+        }
+
+        .input-section {
+            background: #f8f9fa;
+            padding: 20px;
+            border-radius: 15px;
+            margin-bottom: 30px;
+            border-left: 5px solid #3498db;
+        }
+
+        .input-controls {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            flex-wrap: wrap;
+        }
+
+        .control-group {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        label {
+            font-weight: 600;
+            color: #2c3e50;
+        }
+
+        input, select {
+            padding: 8px 12px;
+            border: 2px solid #ddd;
+            border-radius: 8px;
+            font-size: 14px;
+            transition: border-color 0.3s;
+        }
+
+        input:focus, select:focus {
+            outline: none;
+            border-color: #3498db;
+        }
+
+        .network-container {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin: 40px 0;
+            padding: 30px;
+            background: linear-gradient(145deg, #f0f0f0, #ffffff);
+            border-radius: 20px;
+            box-shadow: inset 5px 5px 10px #d1d1d1, inset -5px -5px 10px #ffffff;
+        }
+
+        .layer {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            position: relative;
+        }
+
+        .layer-title {
+            font-weight: bold;
+            margin-bottom: 15px;
+            color: #2c3e50;
+            font-size: 1.1em;
+            text-align: center;
+        }
+
+        .neurons {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .neuron {
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: bold;
+            font-size: 12px;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+            transition: transform 0.3s ease;
+        }
+
+        .neuron:hover {
+            transform: scale(1.1);
+        }
+
+        .input-neuron { background: linear-gradient(45deg, #3498db, #2980b9); }
+        .hidden1-neuron { background: linear-gradient(45deg, #e74c3c, #c0392b); }
+        .hidden2-neuron { background: linear-gradient(45deg, #f39c12, #e67e22); }
+        .hidden3-neuron { background: linear-gradient(45deg, #27ae60, #229954); }
+        .output-neuron { background: linear-gradient(45deg, #9b59b6, #8e44ad); }
+
+        .layer-info {
+            margin-top: 10px;
+            text-align: center;
+            font-size: 0.9em;
+            color: #7f8c8d;
+            max-width: 120px;
+        }
+
+        .connection {
+            position: absolute;
+            height: 2px;
+            background: linear-gradient(90deg, rgba(52, 152, 219, 0.6), rgba(52, 152, 219, 0.2));
+            transform-origin: left center;
+            z-index: -1;
+        }
+
+        .info-panel {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+            margin-top: 30px;
+        }
+
+        .info-card {
+            background: linear-gradient(145deg, #ffffff, #f8f9fa);
+            padding: 25px;
+            border-radius: 15px;
+            box-shadow: 0 8px 16px rgba(0,0,0,0.1);
+            border-left: 4px solid #3498db;
+        }
+
+        .info-card h3 {
+            color: #2c3e50;
+            margin-bottom: 15px;
+            font-size: 1.3em;
+        }
+
+        .info-card ul {
+            list-style: none;
+            padding: 0;
+        }
+
+        .info-card li {
+            padding: 8px 0;
+            border-bottom: 1px solid #ecf0f1;
+            display: flex;
+            justify-content: space-between;
+        }
+
+        .info-card li:last-child {
+            border-bottom: none;
+        }
+
+        .value {
+            font-weight: bold;
+            color: #3498db;
+        }
+
+        .architecture-formula {
+            background: #2c3e50;
+            color: white;
+            padding: 20px;
+            border-radius: 15px;
+            margin: 20px 0;
+            font-family: 'Courier New', monospace;
+            text-align: center;
+            font-size: 1.1em;
+        }
+
+        .highlight {
+            background: rgba(241, 196, 15, 0.3);
+            padding: 2px 4px;
+            border-radius: 4px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1 class="title">AutoNeuralNetwork</h1>
+        <p class="subtitle">Adaptive Automatic Neural Architecture</p>
+
+        <div class="input-section">
+            <div class="input-controls">
+                <div class="control-group">
+                    <label for="inputSize">Features Input:</label>
+                    <input type="number" id="inputSize" value="100" min="1" max="1000">
+                </div>
+                <div class="control-group">
+                    <label for="numClasses">Output Classes:</label>
+                    <input type="number" id="numClasses" value="10" min="1" max="100">
+                </div>
+                <div class="control-group">
+                    <label for="taskType">Task Type:</label>
+                    <select id="taskType">
+                        <option value="classification">Classification</option>
+                        <option value="regression">Regression</option>
+                    </select>
+                </div>
+            </div>
+        </div>
+
+        <div class="architecture-formula">
+            <div>🧠 <span class="highlight">Hidden1</span> = max(64, input × 2) | <span class="highlight">Hidden2</span> = max(32, input × 1) | <span class="highlight">Hidden3</span> = max(16, input ÷ 2)</div>
+        </div>
+
+        <div class="network-container" id="networkContainer">
+            <!-- Network visualization will be generated here -->
+        </div>
+
+        <div class="info-panel">
+            <div class="info-card">
+                <h3>📊 Architecture Dimensions</h3>
+                <ul id="dimensionsList">
+                    <!-- Dimensions will be populated here -->
+                </ul>
+            </div>
+
+            <div class="info-card">
+                <h3>⚙️ Layer Components</h3>
+                <ul>
+                    <li><span>Linear Layer:</span> <span class="value">Transformation</span></li>
+                    <li><span>BatchNorm1d:</span> <span class="value">Normalization</span></li>
+                    <li><span>ReLU:</span> <span class="value">Activation</span></li>
+                    <li><span>Dropout:</span> <span class="value">Regularization</span></li>
+                </ul>
+            </div>
+
+            <div class="info-card">
+                <h3>🎯 Dropout Probabilities</h3>
+                <ul>
+                    <li><span>Hidden Layer 1:</span> <span class="value">30%</span></li>
+                    <li><span>Hidden Layer 2:</span> <span class="value">20%</span></li>
+                    <li><span>Hidden Layer 3:</span> <span class="value">10%</span></li>
+                    <li><span>Output Layer:</span> <span class="value">0%</span></li>
+                </ul>
+            </div>
+
+            <div class="info-card">
+                <h3>🔧 Initialization</h3>
+                <ul>
+                    <li><span>Weights:</span> <span class="value">Xavier Uniform</span></li>
+                    <li><span>Bias:</span> <span class="value">Zero</span></li>
+                    <li><span>Purpose:</span> <span class="value">Stable Gradient</span></li>
+                </ul>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function calculateDimensions(inputSize) {
+            const hidden1 = Math.max(64, inputSize * 2);
+            const hidden2 = Math.max(32, inputSize);
+            const hidden3 = Math.max(16, Math.floor(inputSize / 2));
+            return { hidden1, hidden2, hidden3 };
+        }
+
+        function createNeuron(className, text = '') {
+            const neuron = document.createElement('div');
+            neuron.className = `neuron ${className}`;
+            neuron.textContent = text;
+            return neuron;
+        }
+
+        function createLayer(title, neuronClass, count, info = '') {
+            const layer = document.createElement('div');
+            layer.className = 'layer';
+
+            const titleEl = document.createElement('div');
+            titleEl.className = 'layer-title';
+            titleEl.textContent = title;
+            layer.appendChild(titleEl);
+
+            const neurons = document.createElement('div');
+            neurons.className = 'neurons';
+
+            const maxVisible = 6;
+            const neuronsToShow = Math.min(count, maxVisible);
+
+            for (let i = 0; i < neuronsToShow; i++) {
+                if (i === Math.floor(neuronsToShow / 2) && count > maxVisible) {
+                    const ellipsis = createNeuron(neuronClass, '...');
+                    neurons.appendChild(ellipsis);
+                } else {
+                    const neuron = createNeuron(neuronClass);
+                    neurons.appendChild(neuron);
+                }
+            }
+
+            layer.appendChild(neurons);
+
+            if (info) {
+                const infoEl = document.createElement('div');
+                infoEl.className = 'layer-info';
+                infoEl.textContent = info;
+                layer.appendChild(infoEl);
+            }
+
+            return layer;
+        }
+
+        function updateVisualization() {
+            const inputSize = parseInt(document.getElementById('inputSize').value);
+            const numClasses = parseInt(document.getElementById('numClasses').value);
+            const taskType = document.getElementById('taskType').value;
+
+            const dimensions = calculateDimensions(inputSize);
+
+            // Update network visualization
+            const container = document.getElementById('networkContainer');
+            container.innerHTML = '';
+
+            // Create layers
+            const inputLayer = createLayer(`Input Layer`, 'input-neuron', inputSize, `${inputSize} features`);
+            const hidden1Layer = createLayer(`Hidden Layer 1\n+ BatchNorm + ReLU\n+ Dropout(0.3)`, 'hidden1-neuron', dimensions.hidden1, `${dimensions.hidden1} neurons`);
+            const hidden2Layer = createLayer(`Hidden Layer 2\n+ BatchNorm + ReLU\n+ Dropout(0.2)`, 'hidden2-neuron', dimensions.hidden2, `${dimensions.hidden2} neurons`);
+            const hidden3Layer = createLayer(`Hidden Layer 3\n+ BatchNorm + ReLU\n+ Dropout(0.1)`, 'hidden3-neuron', dimensions.hidden3, `${dimensions.hidden3} neurons`);
+            const outputLayer = createLayer(`Output Layer`, 'output-neuron', numClasses, `${numClasses} ${taskType === 'classification' ? 'classes' : 'values'}`);
+
+            container.appendChild(inputLayer);
+            container.appendChild(hidden1Layer);
+            container.appendChild(hidden2Layer);
+            container.appendChild(hidden3Layer);
+            container.appendChild(outputLayer);
+
+            // Update dimensions list
+            const dimensionsList = document.getElementById('dimensionsList');
+            dimensionsList.innerHTML = `
+                <li><span>Input Features:</span> <span class="value">${inputSize}</span></li>
+                <li><span>Hidden Layer 1:</span> <span class="value">${dimensions.hidden1}</span></li>
+                <li><span>Hidden Layer 2:</span> <span class="value">${dimensions.hidden2}</span></li>
+                <li><span>Hidden Layer 3:</span> <span class="value">${dimensions.hidden3}</span></li>
+                <li><span>Output Layer:</span> <span class="value">${numClasses}</span></li>
+                <li><span>Total Parameters:</span> <span class="value">${calculateTotalParams(inputSize, dimensions, numClasses).toLocaleString()}</span></li>
+            `;
+        }
+
+        function calculateTotalParams(inputSize, dimensions, numClasses) {
+            const layer1 = inputSize * dimensions.hidden1 + dimensions.hidden1; // weights + bias
+            const layer2 = dimensions.hidden1 * dimensions.hidden2 + dimensions.hidden2;
+            const layer3 = dimensions.hidden2 * dimensions.hidden3 + dimensions.hidden3;
+            const layer4 = dimensions.hidden3 * numClasses + numClasses;
+            const batchNorm = (dimensions.hidden1 + dimensions.hidden2 + dimensions.hidden3) * 2; // gamma + beta for each BN layer
+            return layer1 + layer2 + layer3 + layer4 + batchNorm;
+        }
+
+        // Event listeners
+        document.getElementById('inputSize').addEventListener('input', updateVisualization);
+        document.getElementById('numClasses').addEventListener('input', updateVisualization);
+        document.getElementById('taskType').addEventListener('change', updateVisualization);
+
+        // Initial visualization
+        updateVisualization();
+    </script>
+</body>
+</html>

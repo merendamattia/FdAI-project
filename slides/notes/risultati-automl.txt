@@ -1,0 +1,259 @@
+2025-05-30 18:15:04,911 [INFO] Analyzing dataset with PyCaret (classification)
+2025-05-30 18:15:04,911 [INFO] Initializing PyCaret ClassificationExperiment
+2025-05-30 18:15:04,911 [INFO] Setting up PyCaret experiment with preprocessing options
+2025-05-30 18:15:05,700 [INFO] Comparing models to find the best one
+                                    Model  Accuracy     AUC  Recall   Prec.  \
+lightgbm  Light Gradient Boosting Machine    0.8711  0.9271  0.8711  0.8669
+gbc          Gradient Boosting Classifier    0.8657  0.9223  0.8657  0.8604
+ada                  Ada Boost Classifier    0.8607  0.9168  0.8607  0.8552
+rf               Random Forest Classifier    0.8535  0.9045  0.8535  0.8484
+lr                    Logistic Regression    0.8430  0.8824  0.8430  0.8355
+lda          Linear Discriminant Analysis    0.8401  0.8940  0.8401  0.8322
+ridge                    Ridge Classifier    0.8385  0.8940  0.8385  0.8296
+et                 Extra Trees Classifier    0.8331  0.8806  0.8331  0.8285
+dt               Decision Tree Classifier    0.8150  0.7536  0.8150  0.8176
+nb                            Naive Bayes    0.7922  0.8306  0.7922  0.7714
+knn                K Neighbors Classifier    0.7706  0.6525  0.7706  0.7426
+dummy                    Dummy Classifier    0.7592  0.5000  0.7592  0.5763
+svm                   SVM - Linear Kernel    0.6747  0.6176  0.6747  0.6296
+qda       Quadratic Discriminant Analysis    0.4095  0.8525  0.4095  0.8078
+
+              F1   Kappa     MCC  TT (Sec)
+lightgbm  0.8676  0.6295  0.6327     0.466
+gbc       0.8595  0.6024  0.6103     0.337
+ada       0.8554  0.5929  0.5984     0.144
+rf        0.8496  0.5795  0.5825     0.240
+lr        0.8364  0.5380  0.5440     0.527
+lda       0.8333  0.5289  0.5349     0.081
+ridge     0.8273  0.5054  0.5195     0.068
+et        0.8302  0.5284  0.5298     0.262
+dt        0.8162  0.5007  0.5010     0.091
+nb        0.7624  0.3050  0.3380     0.082
+knn       0.7454  0.2606  0.2777     0.226
+dummy     0.6552  0.0000  0.0000     0.080
+svm       0.6075  0.1801  0.2299     0.172
+qda       0.3863  0.1149  0.2319     0.076
+2025-05-30 18:15:36,001 [INFO] Best model found: LGBMClassifier
+2025-05-30 18:15:36,002 [INFO] Predicting on the training set
+                             Model  Accuracy     AUC  Recall   Prec.    F1   Kappa     MCC
+0  Light Gradient Boosting Machine    0.8737  0.9243  0.8737  0.8694  0.87  0.6359  0.6393
+       age  workclass  fnlwgt     education  education-num      marital-status  ... capital-loss hours-per-week native-country salary  prediction_label  prediction_score
+13353   71    Private  187493       HS-grad              9  Married-civ-spouse  ...            0             40  United-States   >50K             <=50K            0.8645
+26294   27    Private  134566       HS-grad              9       Never-married  ...            0             40  United-States  <=50K             <=50K            0.9893
+26120   29    Private  210869  Some-college             10       Never-married  ...            0             80  United-States  <=50K             <=50K            0.9769
+19527   31    Private  198953  Some-college             10           Separated  ...            0             38  United-States  <=50K             <=50K            0.9937
+30471   29  State-gov  201556     Bachelors             13       Never-married  ...            0             50  United-States  <=50K             <=50K            0.6968
+
+[5 rows x 17 columns]
+2025-05-30 18:15:36,335 [INFO] Predicting on the test set
+                             Model  Accuracy     AUC  Recall   Prec.      F1   Kappa     MCC
+0  Light Gradient Boosting Machine    0.8704  0.9256  0.8704  0.8659  0.8669  0.6228  0.6256
+   age  workclass  fnlwgt     education  education-num      marital-status  ... capital-loss hours-per-week native-country salary  prediction_label  prediction_score
+0   25    Private  226802          11th              7       Never-married  ...            0             40  United-States  <=50K             <=50K            0.9972
+1   38    Private   89814       HS-grad              9  Married-civ-spouse  ...            0             50  United-States  <=50K             <=50K            0.7858
+2   28  Local-gov  336951    Assoc-acdm             12  Married-civ-spouse  ...            0             40  United-States   >50K             <=50K            0.6056
+3   44    Private  160323  Some-college             10  Married-civ-spouse  ...            0             40  United-States   >50K              >50K            0.9940
+4   18        NaN  103497  Some-college             10       Never-married  ...            0             30  United-States  <=50K             <=50K            0.9996
+
+[5 rows x 17 columns]
+2025-05-30 18:15:36,737 [INFO] Processing dataset: datasets/classification/bank_marketing
+2025-05-30 18:15:36,737 [INFO] Type: classification
+2025-05-30 18:15:36,737 [INFO] Target column: subscribe
+2025-05-30 18:15:36,737 [INFO] Reading dataset from datasets/classification/bank_marketing/train.csv
+2025-05-30 18:15:36,761 [INFO] Reading dataset from datasets/classification/bank_marketing/test.csv
+2025-05-30 18:15:36,771 [INFO] Cleaning dataset: replacing "?", "nan", "NaN" with np.nan
+2025-05-30 18:15:36,797 [INFO] Cleaning dataset: replacing "?", "nan", "NaN" with np.nan
+2025-05-30 18:15:36,806 [INFO] Analyzing dataset with PyCaret (classification)
+2025-05-30 18:15:36,806 [INFO] Initializing PyCaret ClassificationExperiment
+2025-05-30 18:15:36,806 [INFO] Setting up PyCaret experiment with preprocessing options
+2025-05-30 18:15:37,363 [INFO] Comparing models to find the best one
+                                    Model  Accuracy     AUC  Recall   Prec.  \
+gbc          Gradient Boosting Classifier    0.9442  0.9483  0.9442  0.9353
+lightgbm  Light Gradient Boosting Machine    0.9438  0.9503  0.9438  0.9357
+ridge                    Ridge Classifier    0.9421  0.9366  0.9421  0.9286
+lr                    Logistic Regression    0.9413  0.9322  0.9413  0.9282
+rf               Random Forest Classifier    0.9412  0.9370  0.9412  0.9275
+lda          Linear Discriminant Analysis    0.9403  0.9365  0.9403  0.9375
+ada                  Ada Boost Classifier    0.9389  0.9351  0.9389  0.9276
+et                 Extra Trees Classifier    0.9380  0.9203  0.9380  0.9200
+dummy                    Dummy Classifier    0.9373  0.5000  0.9373  0.8785
+knn                K Neighbors Classifier    0.9350  0.7738  0.9350  0.9211
+svm                   SVM - Linear Kernel    0.9248  0.6490  0.9248  0.9137
+dt               Decision Tree Classifier    0.9229  0.6913  0.9229  0.9259
+nb                            Naive Bayes    0.9123  0.8419  0.9123  0.9270
+qda       Quadratic Discriminant Analysis    0.6789  0.7340  0.6789  0.9121
+
+              F1   Kappa     MCC  TT (Sec)
+gbc       0.9378  0.4200  0.4345     0.323
+lightgbm  0.9382  0.4295  0.4412     0.466
+ridge     0.9251  0.2373  0.3048     0.062
+lr        0.9299  0.3173  0.3514     0.237
+rf        0.9297  0.3138  0.3470     0.203
+lda       0.9387  0.4649  0.4668     0.069
+ada       0.9309  0.3495  0.3664     0.129
+et        0.9232  0.2355  0.2745     0.235
+dummy     0.9069  0.0000  0.0000     0.078
+knn       0.9256  0.2929  0.3102     0.126
+svm       0.9167  0.2300  0.2466     0.082
+dt        0.9243  0.3685  0.3693     0.073
+nb        0.9188  0.3676  0.3733     0.065
+qda       0.7316  0.1393  0.1775     0.071
+2025-05-30 18:16:02,788 [INFO] Best model found: GradientBoostingClassifier
+2025-05-30 18:16:02,788 [INFO] Predicting on the training set
+                          Model  Accuracy     AUC  Recall   Prec.      F1   Kappa   MCC
+0  Gradient Boosting Classifier    0.9451  0.9479  0.9451  0.9361  0.9384  0.4239  0.44
+       age          job   marital  education default  balance housing loan   contact  day month  duration  campaign  pdays  previous poutcome subscribe prediction_label  prediction_score
+8455    44  blue-collar   married  secondary      no     3813     yes   no   unknown    3   jun       771         1     -1         0  unknown        no               no            0.6983
+681     40     services  divorced  secondary      no      105     yes   no   unknown    6   may       189         2     -1         0  unknown        no               no            0.9942
+33515   38   management   married   tertiary      no     7255     yes   no  cellular   20   apr       410         2     -1         0  unknown        no               no            0.9469
+26162   45   technician   married  secondary      no     2128      no  yes  cellular   20   nov        48         3     -1         0  unknown        no               no            0.9962
+3729    31       admin.   married  secondary      no      468     yes   no   unknown   16   may       159         1     -1         0  unknown        no               no            0.9944
+2025-05-30 18:16:03,147 [INFO] Predicting on the test set
+                          Model  Accuracy     AUC  Recall   Prec.      F1   Kappa     MCC
+0  Gradient Boosting Classifier    0.7468  0.8167  0.7468  0.7229  0.7017  0.2181  0.2603
+   age           job  marital  education default  balance housing loan   contact  day month  duration  campaign  pdays  previous poutcome subscribe prediction_label  prediction_score
+0   28  entrepreneur   single   tertiary      no      104      no   no  cellular   30   apr       170         1     -1         0  unknown        no               no            0.6341
+1   47     housemaid  married  secondary      no     3940     yes   no  cellular   30   apr       211         1     87         1    other        no               no            0.9463
+2   34    management   single   tertiary      no      612      no   no  cellular   30   apr       192         1     -1         0  unknown        no               no            0.6538
+3   41    management  married   tertiary      no     2226      no   no  cellular   30   apr       179         1     -1         0  unknown        no               no            0.7744
+4   35    technician  married  secondary      no       35     yes   no  cellular   30   apr       358         1     -1         0  unknown        no               no            0.9426
+2025-05-30 18:16:03,450 [INFO] Processing dataset: datasets/regression/bike_sharing
+2025-05-30 18:16:03,450 [INFO] Type: regression
+2025-05-30 18:16:03,450 [INFO] Target column: cnt
+2025-05-30 18:16:03,450 [INFO] Reading dataset from datasets/regression/bike_sharing/train.csv
+2025-05-30 18:16:03,458 [INFO] Reading dataset from datasets/regression/bike_sharing/test.csv
+2025-05-30 18:16:03,462 [INFO] Cleaning dataset: replacing "?", "nan", "NaN" with np.nan
+2025-05-30 18:16:03,463 [INFO] Cleaning dataset: replacing "?", "nan", "NaN" with np.nan
+2025-05-30 18:16:03,464 [INFO] Analyzing dataset with PyCaret (regression)
+2025-05-30 18:16:03,464 [INFO] Initializing PyCaret RegressionExperiment
+2025-05-30 18:16:03,464 [INFO] Setting up PyCaret experiment with preprocessing options
+2025-05-30 18:16:04,198 [INFO] Comparing models to find the best one
+                                    Model       MAE         MSE      RMSE  \
+lr                      Linear Regression    0.0000      0.0000    0.0000
+llar         Lasso Least Angle Regression    0.0165      0.0007    0.0259
+lasso                    Lasso Regression    0.0162      0.0007    0.0254
+par          Passive Aggressive Regressor    0.0351      0.0018    0.0422
+br                         Bayesian Ridge    0.0000      0.0000    0.0000
+huber                     Huber Regressor    0.0006      0.0000    0.0008
+lar                Least Angle Regression    0.0000      0.0000    0.0000
+en                            Elastic Net    0.0162      0.0006    0.0253
+ridge                    Ridge Regression    0.0000      0.0000    0.0000
+et                  Extra Trees Regressor    0.8686      8.7886    2.8212
+knn                 K Neighbors Regressor    1.5830     10.5890    3.1536
+rf                Random Forest Regressor    1.2475     14.2153    3.6269
+lightgbm  Light Gradient Boosting Machine    1.7517     17.3622    4.0927
+gbr           Gradient Boosting Regressor    2.9041     22.8090    4.7372
+dt                Decision Tree Regressor    2.8733     43.9599    6.5728
+ada                    AdaBoost Regressor   18.3910    504.1366   22.4368
+omp           Orthogonal Matching Pursuit   23.4961   1576.8143   39.6620
+dummy                     Dummy Regressor  125.9343  26074.8112  161.4451
+
+              R2   RMSLE    MAPE  TT (Sec)
+lr        1.0000  0.0000  0.0000     0.027
+llar      1.0000  0.0011  0.0006     0.022
+lasso     1.0000  0.0011  0.0006     0.022
+par       1.0000  0.0036  0.0017     0.024
+br        1.0000  0.0000  0.0000     0.027
+huber     1.0000  0.0001  0.0000     0.033
+lar       1.0000  0.0000  0.0000     0.023
+en        1.0000  0.0011  0.0006     0.029
+ridge     1.0000  0.0000  0.0000     0.022
+et        0.9997  0.0098  0.0044     0.184
+knn       0.9996  0.0517  0.0298     0.027
+rf        0.9995  0.0136  0.0066     0.234
+lightgbm  0.9993  0.0272  0.0178     0.357
+gbr       0.9991  0.0543  0.0379     0.122
+dt        0.9983  0.0261  0.0141     0.026
+ada       0.9806  0.7029  1.2828     0.072
+omp       0.9394  0.4057  0.4706     0.026
+dummy    -0.0017  1.5559  7.6969     0.022
+2025-05-30 18:16:18,522 [INFO] Best model found: LinearRegression
+2025-05-30 18:16:18,522 [INFO] Predicting on the training set
+               Model  MAE  MSE  RMSE   R2  RMSLE  MAPE
+0  Linear Regression  0.0  0.0   0.0  1.0    0.0   0.0
+       season  yr  mnth  hr  holiday  weekday  workingday  weathersit  temp   atemp   hum  windspeed  casual  registered  cnt  prediction_label
+10354       1   1     3  13        0        1           1           2  0.54  0.5152  0.32     0.2537      74         176  250             250.0
+11688       2   1     5   5        0        1           1           1  0.46  0.4545  0.88     0.1045       2          21   23              23.0
+12818       3   1     6   7        0        6           0           1  0.64  0.5758  0.83     0.1642      19          59   78              78.0
+5077        3   0     8  11        0        4           1           2  0.74  0.6970  0.66     0.2239      37         112  149             149.0
+8170        4   0    12   2        0        1           1           1  0.20  0.2576  0.69     0.0000       0           4    4               4.0
+2025-05-30 18:16:18,750 [INFO] Predicting on the test set
+               Model  MAE  MSE  RMSE   R2  RMSLE  MAPE
+0  Linear Regression  0.0  0.0   0.0  1.0    0.0   0.0
+   instant      dteday  season  yr  mnth  hr  holiday  weekday  workingday  weathersit  temp   atemp   hum  windspeed  casual  registered  cnt  prediction_label
+0    13089  2012-07-04       3   1     7  13        1        3           0           1  0.90  0.8182  0.35     0.0000     177         322  499             499.0
+1    13090  2012-07-04       3   1     7  14        1        3           0           1  0.90  0.8182  0.37     0.1642     190         357  547             547.0
+2    13091  2012-07-04       3   1     7  15        1        3           0           1  0.92  0.8485  0.35     0.2985     155         299  454             454.0
+3    13092  2012-07-04       3   1     7  16        1        3           0           1  0.92  0.8485  0.35     0.2537     163         226  389             389.0
+4    13093  2012-07-04       3   1     7  17        1        3           0           1  0.92  0.8485  0.35     0.2985     161         253  414             414.0
+2025-05-30 18:16:18,849 [INFO] Processing dataset: datasets/regression/house_price
+2025-05-30 18:16:18,849 [INFO] Type: regression
+2025-05-30 18:16:18,849 [INFO] Target column: price
+2025-05-30 18:16:18,849 [INFO] Reading dataset from datasets/regression/house_price/train.csv
+2025-05-30 18:16:19,193 [INFO] Reading dataset from datasets/regression/house_price/test.csv
+2025-05-30 18:16:19,263 [INFO] Cleaning dataset: replacing "?", "nan", "NaN" with np.nan
+2025-05-30 18:16:19,413 [INFO] Cleaning dataset: replacing "?", "nan", "NaN" with np.nan
+2025-05-30 18:16:19,442 [INFO] Analyzing dataset with PyCaret (regression)
+2025-05-30 18:16:19,442 [INFO] Initializing PyCaret RegressionExperiment
+2025-05-30 18:16:19,442 [INFO] Setting up PyCaret experiment with preprocessing options
+2025-05-30 18:16:20,752 [INFO] Comparing models to find the best one
+                                    Model           MAE           MSE  \
+lightgbm  Light Gradient Boosting Machine  4.435195e+06  2.275778e+14
+rf                Random Forest Regressor  3.470829e+06  2.389836e+14
+et                  Extra Trees Regressor  3.541937e+06  2.563555e+14
+gbr           Gradient Boosting Regressor  6.180063e+06  3.952907e+14
+dt                Decision Tree Regressor  3.988682e+06  4.796334e+14
+knn                 K Neighbors Regressor  5.279285e+06  5.269903e+14
+ridge                    Ridge Regression  1.373276e+07  8.875783e+14
+br                         Bayesian Ridge  1.379378e+07  9.353856e+14
+llar         Lasso Least Angle Regression  1.380479e+07  9.442923e+14
+lasso                    Lasso Regression  1.380568e+07  9.482617e+14
+huber                     Huber Regressor  1.128864e+07  1.019034e+15
+en                            Elastic Net  1.411251e+07  1.058612e+15
+par          Passive Aggressive Regressor  1.168281e+07  1.147545e+15
+omp           Orthogonal Matching Pursuit  1.600261e+07  1.160870e+15
+dummy                     Dummy Regressor  1.851981e+07  1.357042e+15
+ada                    AdaBoost Regressor  2.421708e+07  1.659726e+15
+lr                      Linear Regression  2.246803e+14  8.739978e+32
+lar                Least Angle Regression  2.483308e+20  4.543829e+45
+
+                  RMSE            R2   RMSLE          MAPE  TT (Sec)
+lightgbm  1.486671e+07  8.338000e-01  1.2346  7.053601e+02     0.544
+rf        1.516168e+07  8.270000e-01  0.3459  7.518897e+02     2.232
+et        1.575295e+07  8.137000e-01  0.3586  7.569639e+02     1.666
+gbr       1.964168e+07  7.137000e-01  1.7645  6.452261e+02     0.933
+dt        2.094263e+07  6.581000e-01  0.4287  8.380018e+02     0.174
+knn       2.276939e+07  6.131000e-01  0.7683  6.702591e+02     0.573
+ridge     2.967411e+07  3.484000e-01  2.9425  7.312161e+02     0.137
+br        3.043032e+07  3.088000e-01  2.9390  7.543347e+02     0.200
+llar      3.055318e+07  3.015000e-01  2.9386  7.546794e+02     0.137
+lasso     3.060650e+07  2.984000e-01  2.9386  7.547277e+02     0.715
+huber     3.176163e+07  2.548000e-01  2.5436  5.185143e+02     0.345
+en        3.240404e+07  2.236000e-01  2.7368  6.563450e+02     0.174
+par       3.374375e+07  1.578000e-01  2.3817  4.497638e+02     2.226
+omp       3.393415e+07  1.465000e-01  2.9084  6.031187e+02     0.147
+dummy     3.673798e+07 -1.000000e-04  3.1929  5.630878e+02     0.133
+ada       3.919510e+07 -1.846000e-01  3.3084  1.007033e+03     0.770
+lr        1.486427e+16 -6.876452e+17  2.9469  3.665932e+09     0.164
+lar       2.301323e+22 -3.642582e+30  7.4303  7.875378e+14     0.132
+2025-05-30 18:18:17,706 [INFO] Best model found: LGBMRegressor
+2025-05-30 18:18:17,707 [INFO] Predicting on the training set
+                             Model           MAE           MSE          RMSE      R2   RMSLE      MAPE
+0  Light Gradient Boosting Machine  4.500167e+06  2.500024e+14  1.581147e+07  0.8132  1.2598  3061.231
+       property_type   latitude  longitude  baths   purpose  bedrooms Area Type  Area Size area_category     price  prediction_label
+32022           Flat  24.881433  67.176079      2  For Sale         2     Marla        4.4     0-5 Marla   5500000      5.804026e+06
+119315         House  33.680225  73.222008      3  For Rent         3     Marla        5.0     0-5 Marla     55000      1.126240e+06
+104925          Flat  33.647003  73.097824      4  For Sale         4     Marla       11.4   10-15 Marla  19200000      2.702412e+07
+121072         House  31.483282  74.395721      4  For Sale         4     Kanal        1.0     1-5 Kanal  33500000      4.049812e+07
+116640         House  25.067080  67.309982      3  For Sale         3     Marla        6.1    5-10 Marla  13000000      8.899632e+06
+2025-05-30 18:18:17,830 [INFO] Predicting on the test set
+                             Model           MAE           MSE          RMSE      R2   RMSLE       MAPE
+0  Light Gradient Boosting Machine  3.591056e+06  1.143050e+14  1.069135e+07  0.8545  1.3876  4695.6415
+   property_id  location_id                                           page_url property_type             location  ... Area Type Area Size  area_category     price  prediction_label
+0     17159929        10011  https://www.zameen.com/Property/bahria_town_pr...         House  Bahria Town Karachi  ...     Marla       8.0     5-10 Marla  19500000      1.757039e+07
+1     17159979        13769  https://www.zameen.com/Property/bahria_town_ka...         House  Bahria Town Karachi  ...     Marla       8.0     5-10 Marla   5800000      1.088522e+07
+2     17159985        10018  https://www.zameen.com/Property/bahria_town_ka...         House  Bahria Town Karachi  ...     Marla       8.0     5-10 Marla  13500000      1.366920e+07
+3     17160013        10045  https://www.zameen.com/Property/bahria_town_ka...         House  Bahria Town Karachi  ...     Marla       9.4     5-10 Marla   9200000      1.363861e+07
+4     17160018         8298  https://www.zameen.com/Property/karachi_bahria...          Flat  Bahria Town Karachi  ...     Marla       9.8     5-10 Marla  13000000      1.784572e+07
+
+[5 rows x 21 columns]
