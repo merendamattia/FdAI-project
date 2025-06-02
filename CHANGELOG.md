@@ -1,3 +1,15 @@
+## [1.1.1](https://github.com/merendamattia/neural-network-performance-by-data-quality/compare/v1.1.0...v1.1.1) (2025-06-02)
+
+
+### Bug Fixes
+
+* update job name and remove Codecov upload step from unit tests workflow ([96f25e3](https://github.com/merendamattia/neural-network-performance-by-data-quality/commit/96f25e32dc7629fa6721cbd297a52162e63d5bd4))
+
+
+### Performance Improvements
+
+* introduce modules, unit tests and general refactoring ([7045d59](https://github.com/merendamattia/neural-network-performance-by-data-quality/commit/7045d59491e24995e768ba27e553651b9d85a39a))
+
 # [1.1.0](https://github.com/merendamattia/neural-network-performance-by-data-quality/compare/v1.0.2...v1.1.0) (2025-06-02)
 
 
