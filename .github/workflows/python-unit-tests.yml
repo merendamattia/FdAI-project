@@ -30,12 +30,6 @@ jobs:
         pip install -r requirements.txt
         pip install -e .
 
-    - name: Run tests with coverage
+    - name: Run unit tests with coverage
       run: |
         python -m pytest src/tests/ --cov=src/neural_network --cov-report=xml --cov-report=term-missing -v
-
-    - name: Upload coverage to Codecov
-      uses: codecov/codecov-action@v3
-      with:
-        file: ./coverage.xml
-        fail_ci_if_error: true
