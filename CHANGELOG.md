@@ -1,3 +1,16 @@
+# [1.1.0](https://github.com/merendamattia/neural-network-performance-by-data-quality/compare/v1.0.2...v1.1.0) (2025-06-02)
+
+
+### Bug Fixes
+
+* remove outdated logging information from README ([6e45ff3](https://github.com/merendamattia/neural-network-performance-by-data-quality/commit/6e45ff32c10136376cc11efc45f2cdcabef95a19))
+* remove outdated page ([c1501cb](https://github.com/merendamattia/neural-network-performance-by-data-quality/commit/c1501cb73e5b690da986839df4f225ef29010dc9))
+
+
+### Features
+
+* update presentation slides ([2c5cb0b](https://github.com/merendamattia/neural-network-performance-by-data-quality/commit/2c5cb0bb3ced9292a5a644f148b11680c3cc3662))
+
 ## [1.0.2](https://github.com/merendamattia/neural-network-performance-by-data-quality/compare/v1.0.1...v1.0.2) (2025-05-30)
 
 
