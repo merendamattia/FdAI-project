@@ -1,3 +1,10 @@
+## [1.1.2](https://github.com/merendamattia/neural-network-performance-by-data-quality/compare/v1.1.1...v1.1.2) (2025-06-03)
+
+
+### Bug Fixes
+
+* update ignored features in analyze_with_pycaret function and uncomment dataset paths in main ([dfd8aa6](https://github.com/merendamattia/neural-network-performance-by-data-quality/commit/dfd8aa682abe4b7c2f1ea6d8ea195ec1eecbe667))
+
 ## [1.1.1](https://github.com/merendamattia/neural-network-performance-by-data-quality/compare/v1.1.0...v1.1.1) (2025-06-02)
 
 
