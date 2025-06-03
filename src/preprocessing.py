@@ -375,7 +375,7 @@ def analyze_with_pycaret(df_train, df_test, type='classification', target=None):
                      remove_outliers=True,
                      outliers_threshold=0.02,
                      outliers_method='iforest',
-                     ignore_features=['dteday', 'instant', 'property_id', 'location_id', 'page_url', 'location', 'city', 'province_name', 'area', 'date_added', 'agency', 'agent'],
+                     ignore_features=['Id', 'dteday', 'instant', 'property_id', 'location_id', 'page_url', 'location', 'city', 'province_name', 'area', 'date_added', 'agency', 'agent'],
                      )
     logger.info('Comparing models to find the best one')
     best_model = experiment.compare_models()
@@ -394,9 +394,9 @@ def analyze_with_pycaret(df_train, df_test, type='classification', target=None):
 def main():
     logger = get_logger()
     dataset_dirs = [
-        # ('datasets/classification/census_income', 'classification', 'salary'),
-        # ('datasets/classification/bank_marketing', 'classification', 'subscribe'),
-        # ('datasets/regression/bike_sharing', 'regression', 'cnt'),
+        ('datasets/classification/census_income', 'classification', 'salary'),
+        ('datasets/classification/bank_marketing', 'classification', 'subscribe'),
+        ('datasets/regression/bike_sharing', 'regression', 'cnt'),
         ('datasets/regression/house_price', 'regression', 'price')
     ]
     logger.info('Starting preprocessing of datasets')
