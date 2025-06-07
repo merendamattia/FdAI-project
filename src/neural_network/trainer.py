@@ -48,31 +48,40 @@ class ModelTrainer:
         Returns:
             tuple: (model, predictions, train_losses, train_metrics)
         """
-        # Setup criterion and optimizer
+        # Define the loss function based on the task type (classification or regression)
         criterion = (nn.CrossEntropyLoss() if self.task_type == 'classification'
                     else nn.MSELoss())
+
+        # Initialize the Adam optimizer with learning rate and weight decay
         optimizer = optim.Adam(model.parameters(), lr=0.001, weight_decay=1e-5)
+
+        # Set up a learning rate scheduler that decays the LR every 30 epochs by a factor of 0.1
         scheduler = optim.lr_scheduler.StepLR(optimizer, step_size=30, gamma=0.1)
 
-        # Create DataLoader
+        # Wrap training data into a TensorDataset
         train_dataset = TensorDataset(X_train, y_train)
+        # Create a DataLoader to iterate over training data in batches
         train_loader = DataLoader(train_dataset, batch_size=batch_size, shuffle=True)
 
         # Training history
         train_losses = []
         train_metrics = []
 
+        # Set the model to training mode
         model.train()
         for epoch in range(num_epochs):
             epoch_loss = 0
             epoch_metrics = self._init_epoch_metrics()
 
+            # Iterate over batches in the training data
             for batch_X, batch_y in train_loader:
+                # Move data to the configured device (CPU or GPU)
                 batch_X = batch_X.to(self.device)
                 batch_y = batch_y.to(self.device)
 
                 # Forward pass
                 outputs = model(batch_X)
+                # Compute the loss between predictions and true labels
                 loss = criterion(outputs, batch_y)
 
                 # Backward pass and optimize
@@ -84,6 +93,7 @@ class ModelTrainer:
                 epoch_loss += loss.item()
                 self._update_epoch_metrics(epoch_metrics, outputs, batch_y)
 
+            # Step the learning rate scheduler
             scheduler.step()
 
             # Calculate average metrics
@@ -96,7 +106,7 @@ class ModelTrainer:
             if (epoch + 1) % 5 == 0:
                 self._log_training_progress(epoch + 1, num_epochs, avg_loss, avg_metrics)
 
-        # Generate test predictions
+        # Set model to evaluation mode
         model.eval()
         with torch.no_grad():
             test_outputs = model(X_test.to(self.device))
