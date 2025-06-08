@@ -1,3 +1,15 @@
+# [1.2.0](https://github.com/merendamattia/neural-network-performance-by-data-quality/compare/v1.1.2...v1.2.0) (2025-06-08)
+
+
+### Bug Fixes
+
+* update presentation slides and key files ([841b146](https://github.com/merendamattia/neural-network-performance-by-data-quality/commit/841b146df3ca7a1f7e3db635fd0b7397cd42b1e4))
+
+
+### Features
+
+* add new slides and assets for presentation ([b1127c8](https://github.com/merendamattia/neural-network-performance-by-data-quality/commit/b1127c8150700296c45fc7d4057a9250153a6862))
+
 ## [1.1.2](https://github.com/merendamattia/neural-network-performance-by-data-quality/compare/v1.1.1...v1.1.2) (2025-06-03)
 
 
