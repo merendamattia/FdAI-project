@@ -22,7 +22,7 @@ This project explores how different data preprocessing techniques affect the per
 1. **Create a Conda Environment**
 
    ```bash
-   conda create --name neural-network-performance-by-data-quality python=3.11
+   conda create --name neural-network-performance-by-data-quality python=3.11 && \
    conda activate neural-network-performance-by-data-quality
    ```
 
@@ -48,7 +48,6 @@ This project explores how different data preprocessing techniques affect the per
 5. **[Optional] Run single experiment**
 
    ```bash
-   # Run all experiments
    python src/main.py --task-type classification --dataset census_income --target salary
    python src/main.py --task-type regression --dataset house_price --target price
    ```
@@ -63,5 +62,5 @@ This project explores how different data preprocessing techniques affect the per
 
 ## Notes
 
-- The project uses scikit-learn for preprocessing utilities
+- The project uses scikit-learn for preprocessing utilities.
 - The project uses PyCaret for some preprocessing and model comparison tasks.
